@@ -320,6 +320,8 @@
 -r:"Library/Bee/artifacts/1900b0aE.dag/UnityEngine.UI.ref.dll"
 -r:"Library/Bee/artifacts/1900b0aE.dag/VSSettingsProvider.ref.dll"
 "Assets/Game.cs"
+"Assets/GPUInstancing/CShaders.cs"
+"Assets/GPUInstancing/GPUInstancing.cs"
 -langversion:8.0
 
 /deterministic

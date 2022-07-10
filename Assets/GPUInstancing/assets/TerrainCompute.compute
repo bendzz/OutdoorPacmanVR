@@ -1,0 +1,181 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+//#pragma kernel CSMain
+
+//// Create a RenderTexture with enableRandomWrite flag and set it
+//// with cs.SetTexture
+//RWTexture2D<float4> Result;
+
+//[numthreads(8,8,1)]
+//void CSMain (uint3 id : SV_DispatchThreadID)
+//{
+//    // TODO: insert actual code here!
+
+//    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+//}
+
+//#include "Noise.cginc"
+#include "CSDefs.cginc"
+
+RWStructuredBuffer<terrainCell> terrainCells;
+RWStructuredBuffer<bot> bots;
+
+// Generic helper values used in multiple kernels
+int threadStart; 
+int threadCount;
+
+
+// specific to these shader tasks
+int gridSizex;
+int gridSizey;
+float cellSize;
+
+
+
+
+#pragma kernel generateTerrain
+[numthreads(ThreadCount1D, 1, 1)]
+void generateTerrain(uint3 id : SV_DispatchThreadID)
+{
+	int bi = id.x;
+	if (bi >= threadCount)
+		return;
+	bi += threadStart;
+
+	terrainCell cell = terrainCells[bi];
+	
+	//cell.height += id.x * .02;
+	//float3 noiseIn = float3(id.x, id.x, id.x);
+	int2 cellID = int2(bi % gridSizex, bi / gridSizex);
+	
+	float scaleXY = .5;
+	float scaleZ = 40;
+	for (int i = 0; i < 20; i++)
+	{
+		float3 noiseIn = float3(cellID.x * scaleXY, cellID.y * scaleXY, 0);
+		cell.height += noise(noiseIn * .01) * scaleZ;
+	
+		scaleXY *= 2;
+		scaleZ /= 2;
+
+	}
+
+	cell.height = 60 - cell.height;
+	
+	terrainCells[bi] = cell;
+	
+	//collisionPatch patch = collisionPatchesBuffer[patchPointer];
+	
+	//patch.boundingBoxMin = int3(F_TO_I * 1000, F_TO_I * 1000, F_TO_I * 1000); // TODO: Maybe max int / F_TO_I?
+	//patch.boundingBoxMax = -patch.boundingBoxMin;
+	//patch.posSum = (int3) 0;
+	
+	
+	//collisionPatchesBuffer[patchPointer] = patch;
+	
+}
+
+
+#pragma kernel botTick
+[numthreads(ThreadCount1D, 1, 1)]
+void botTick(uint3 id : SV_DispatchThreadID)
+{
+	int bi = id.x;
+	if (bi >= threadCount)
+		return;
+	bi += threadStart;
+	
+	bot bo = bots[bi];
+	
+	bo.pos.z += .005;
+	bo.pos.x += .001;
+	
+	// stay on the grid
+	if (bo.pos.x < 0) bo.pos.x += (gridSizex * cellSize);
+	if (bo.pos.z < 0) bo.pos.z += (gridSizey * cellSize);
+	bo.pos.x = bo.pos.x % ((gridSizex - 1) * cellSize);
+	bo.pos.z = bo.pos.z % ((gridSizey - 1) * cellSize);
+	
+	// get grid height here; interpolate between the 4 cell corners
+	int gridi[4];	// grid indices
+	float gridd[4];	// grid distances
+	float totalDistance = 0;
+	float maxDis = length(float2(1, 1));
+	
+	float2 grid = float2(bo.pos.x / cellSize, bo.pos.z / cellSize);
+	float3 grid0 = float3(grid, 0);
+	float3 grid1 = floor(grid0);
+	float3 grid2 = grid1 + float3(1, 1, 0); //ceil(grid0);
+	
+	//barycentricCoordinates(float3 p, float3 a, float3 b, float3 c)
+	
+	float3 tri1 = barycentricCoordinates(grid0, grid1, float3(grid1.x, grid2.y, 0), float3(grid2.x, grid1.y, 0));
+	float3 tri2 = barycentricCoordinates(grid0, grid2, float3(grid1.x, grid2.y, 0), float3(grid2.x, grid1.y, 0));
+	
+	//float3 tri1 = barycentricCoordinates(grid0, float3(grid2.x, grid1.y, 0), grid1, float3(grid1.x, grid2.y, 0));
+	//float3 tri2 = barycentricCoordinates(grid0, float3(grid2.x, grid1.y, 0), grid2, float3(grid1.x, grid2.y, 0));
+	
+	float height = 0;
+	if (tri1.x > 0 && tri1.y > 0 && tri1.z > 0)
+	{
+		height += tri1.x * terrainCells[grid1.x + (int) (grid1.y) * gridSizex].height;
+		height += tri1.y * terrainCells[grid1.x + (int) (grid2.y) * gridSizex].height;
+		height += tri1.z * terrainCells[grid2.x + (int) (grid1.y) * gridSizex].height;
+		
+		// debug
+		bo.info = tri1;
+		terrainCells[grid1.x + (int) (grid1.y) * gridSizex].info.x = tri1.x;
+		terrainCells[grid1.x + (int) (grid2.y) * gridSizex].info.x = tri1.y;
+		terrainCells[grid2.x + (int) (grid1.y) * gridSizex].info.x = tri1.z;
+
+	}
+	else
+	{
+		height += tri2.x * terrainCells[grid2.x + (int) (grid2.y) * gridSizex].height;
+		height += tri2.y * terrainCells[grid1.x + (int) (grid2.y) * gridSizex].height;
+		height += tri2.z * terrainCells[grid2.x + (int) (grid1.y) * gridSizex].height;
+		
+		// debug
+		bo.info = tri2;
+		terrainCells[grid2.x + (int) (grid2.y) * gridSizex].info.x = tri2.x;
+		terrainCells[grid1.x + (int) (grid2.y) * gridSizex].info.x = tri2.y;
+		terrainCells[grid2.x + (int) (grid1.y) * gridSizex].info.x = tri2.z;
+	}
+	
+	bo.pos.y = height;
+	
+	//int cell = 0;
+	//for (int x = 0; x < 2; x++)
+	//{
+	//	int2 gridc = grid;
+	//	gridc.x += x;
+	//	for (int y = 0; y < 2; y++)
+	//	{
+	//		gridc.y += y;
+			
+	//		gridi[cell] = gridc.y * gridSizex + gridc.x;
+	//		gridd[cell] = maxDis - length(grid - (float2) gridc);
+	//		totalDistance += gridd[cell];
+			
+			
+	//		cell += 1;
+	//	}
+	//}
+	
+	//float avgHeight = 0;
+	//for (cell = 0; cell < 4; cell++)
+	//{
+	//	avgHeight += terrainCells[gridi[cell]].height * (gridd[cell] / totalDistance);
+	//}
+	
+	//bo.pos.y = avgHeight;
+	
+	
+	//bo.pos.y = totalDistance * 10;
+	
+	//int gridi = (int) (grid.y) * gridSizex + grid.x;
+	//int gridi = (int) (bo.pos.z) * gridSizex + bo.pos.x;
+	//bo.pos.y = terrainCells[gridi].height + 1;
+	
+		bots[bi] = bo;
+
+}

@@ -60,6 +60,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Game.cs" />
+    <Compile Include="Assets\GPUInstancing\GPUInstancing.cs" />
+    <Compile Include="Assets\GPUInstancing\CShaders.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\GPUInstancing\assets\Noise.cginc" />
+    <None Include="Assets\GPUInstancing\assets\CSDefs.cginc" />
+    <None Include="Assets\GPUInstancing\assets\bots.shader" />
+    <None Include="Assets\GPUInstancing\assets\TerrainCompute.compute" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

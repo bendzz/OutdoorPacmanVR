@@ -98,6 +98,7 @@ public class Game : MonoBehaviour
         //GPUInstancing.Bots.bots.list.AddRange(walls);
         //GPUInstancing.Bots.bots.list.AddRange(walls);
         GPUInstancing.Bots.bots.list.AddRange(dots);
+        GPUInstancing.Bots.bots.list.AddRange(pills);
         //GPUInstancing.Bots.bots.list.AddRange(pills);
 
         GPUInstancing.Bots.submeshInstances = new List<int>();
@@ -106,6 +107,7 @@ public class Game : MonoBehaviour
         //GPUInstancing.Bots.submeshInstances.Add(walls.Count * 1);
         //GPUInstancing.Bots.submeshInstances.Add(walls.Count * 1);
         GPUInstancing.Bots.submeshInstances.Add(dots.Count * 1);
+        GPUInstancing.Bots.submeshInstances.Add(pills.Count * 1);
         //GPUInstancing.Bots.submeshInstances.Add(pills.Count * 1);
 
 

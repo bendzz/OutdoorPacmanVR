@@ -167,7 +167,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 216010502}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -1.74, y: 0, z: -0.98}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1422916481}
@@ -193,6 +193,7 @@ MonoBehaviour:
   botSkins:
   - {fileID: 8763114918133364651}
   - {fileID: 8885864409304601092}
+  - {fileID: 4074802807875945057}
   - {fileID: 4074802807875945057}
   botShader: {fileID: 4800000, guid: 8de1e5b4daca0a44f92352030775a81c, type: 3}
 --- !u!1 &550617380

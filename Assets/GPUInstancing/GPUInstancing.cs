@@ -178,9 +178,14 @@ public class GPUInstancing : MonoBehaviour
             {
                 Debug.LogError("submeshInstances not set! no GPUInstancing meshes will be rendered!");
             }
+            if (submeshInstances.Count > submeshes.list.Count)
+                Debug.LogError("Warning! More different mesh types attempting to be drawn than you have meshes entered! Add more meshes to GPUInstancing script list!");
 
             int offset = 0;
-            for (int submeshI = 0; submeshI < submeshes.list.Count; submeshI++)
+            //int offset = 4792;
+            //for (int submeshI = 0; submeshI < submeshes.list.Count; submeshI++)
+            //for (int submeshI = 0; submeshI < 3; submeshI++)
+            for (int submeshI = 0; submeshI < submeshInstances.Count; submeshI++)
             //for (int submeshI = 1; submeshI < 3; submeshI++)
             //for (int submeshI = 1; submeshI < submeshes.list.Count; submeshI++)
             {
@@ -200,8 +205,9 @@ public class GPUInstancing : MonoBehaviour
 
                 //print("submeshInstances[submeshI] " + submeshInstances[submeshI]); 
 
-                //int instanceCount = submeshInstances[submeshI];
-                int instanceCount = submeshInstances[1-submeshI];
+                int instanceCount = submeshInstances[submeshI];
+                //int instanceCount = 4792;
+                //int instanceCount = submeshInstances[1-submeshI];
 
                 //int instanceCount = submeshInstances[submeshI - 1];
                 //int instanceCount = 100; 
@@ -213,15 +219,35 @@ public class GPUInstancing : MonoBehaviour
                 //botMaterial.SetInt("submeshI", submeshI);   // why +1..?
                 botMaterial.SetInt("submeshI", submeshI);   // why +1..?
                 botMaterial.SetInt("botOffset", offset);
-                botMaterial.SetInt("instanceCount", instanceCount); // TODO does nothing now..?
+                //botMaterial.SetInt("instanceCount", instanceCount); // TODO does nothing now..? 
 
                 botMaterial.SetBuffer("bots", bots.buffer);
                 //botMaterial.SetBuffer("bots", botLists[submeshI].buffer);
 
+                //int triCount = submeshes.list[submeshI].trianglesCount / 3 * instanceCount;
+                //if (submeshI == 0)
+                //    triCount = submeshes.list[2].trianglesCount / 3 * submeshInstances[2];
+                //triCount = submeshes.list[(submeshI -1) %1].trianglesCount / 3 * submeshInstances[(submeshI - 1) % 1];
+                //print("modulus " + ((submeshI + 1) % 2));
+                //int tricountIndice = submeshI + 2;
+                
+                // HACKY FIX! If there's more than one mesh type, you have to swap out their polygon/instance counts in the Draw command,
+                // or they draw too few/too many polys. I have no idea why. But. This makes it work. <__>
+                int tricountIndice = submeshI + submeshInstances.Count-1;   // So that input indices of 0,1,2 become 2,0,1, etc.
+                if (tricountIndice >= submeshInstances.Count)
+                    //tricountIndice -= submeshInstances.Count;
+                    tricountIndice = tricountIndice % submeshInstances.Count;
+                int triCount = submeshes.list[tricountIndice].trianglesCount / 3 * submeshInstances[tricountIndice];
+                //triCount = submeshes.list[(submeshI +1) %2].trianglesCount / 3 * submeshInstances[(submeshI + 1) % 2];
+
+                print("submeshI " + submeshI + " tricountIndice " + tricountIndice + " triCount " + triCount);
+                Graphics.DrawProceduralNow(MeshTopology.Points, triCount);   // The number of meshes drawn is determined in shader by dividing the given total triangle count by the submesh triangle count
                 //Graphics.DrawProceduralNow(MeshTopology.Points, submeshes.list[submeshI].trianglesCount / 3 * instanceCount);   // The number of meshes drawn is determined in shader by dividing the given total triangle count by the submesh triangle count
-                Graphics.DrawProceduralNow(MeshTopology.Points, submeshes.list[1-submeshI].trianglesCount / 3 * instanceCount);   // The number of meshes drawn is determined in shader by dividing the given total triangle count by the submesh triangle count
+                //Graphics.DrawProceduralNow(MeshTopology.Points, submeshes.list[0].trianglesCount / 3 * instanceCount);   // The number of meshes drawn is determined in shader by dividing the given total triangle count by the submesh triangle count
+                //Graphics.DrawProcedural(MeshTopology.Points, submeshes.list[submeshI].trianglesCount / 3 * instanceCount);   // The number of meshes drawn is determined in shader by dividing the given total triangle count by the submesh triangle count
+                //Graphics.DrawProceduralNow(MeshTopology.Points, (submeshes.list[1-submeshI].trianglesCount / 3) * instanceCount);   // The number of meshes drawn is determined in shader by dividing the given total triangle count by the submesh triangle count
                 //}
-                print("submesh " + submeshI + " submesh count " + submeshInstances.Count + " instance count " + instanceCount + " offset " + offset + " tri count " + submeshes.list[1 - submeshI].trianglesCount / 3 * instanceCount);
+                //print("submesh " + submeshI + " submesh count " + submeshInstances.Count + " instance count " + instanceCount + " offset " + offset + " tri count " + submeshes.list[1 - submeshI].trianglesCount / 3 * instanceCount);
 
                 offset += submeshInstances[submeshI];
                 //offset += instanceCount;

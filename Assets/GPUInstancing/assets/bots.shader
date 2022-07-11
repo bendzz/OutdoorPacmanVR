@@ -9,10 +9,13 @@
     }
         SubShader
         {
-            Tags { "RenderType" = "Opaque" }
+            //Tags { "RenderType" = "Opaque" }
+            Tags { "RenderType" = "transparent " }
+            Blend One One // additive blending 
             LOD 200
 
             Cull off
+            ZWRITE OFF
 
             Pass
             {
@@ -108,6 +111,11 @@
             //int submesh;
 
             Submesh sub = submeshes[submeshI];
+            //int meshInd = 0;
+            //if (submeshI == 0) meshInd = 1;
+            //if (submeshI == 1) meshInd = 2;
+            ////Submesh sub = submeshes[2-submeshI];
+            //Submesh sub = submeshes[meshInd];
 
             //int vertOffset = (int)(id / sub.verticesCount) - verticesStart;
 
@@ -116,8 +124,9 @@
 
 
             //int botID = (id * 3) / sub.trianglesCount + (instanceCount * (submeshI - 1));   // TODO this instanceCount won't work
-            //int botID = (id * 3) / sub.trianglesCount + botOffset;
             int botID = (id * 3) / sub.trianglesCount + botOffset;
+            //int botID = (id * 3) / sub.trianglesCount + 0;
+            //if (submeshI == 0)
             //botID *= 40;
 
             bot bo = bots[botID];
@@ -153,6 +162,7 @@
             //col = float4(abs(35 - i.info.x % 70) / 35, 1, i.info.x / 19 % .5, 1);
             //col = float4(i.info.xyz, 1);
 
+        col *= .1;
             return col;
         }
 

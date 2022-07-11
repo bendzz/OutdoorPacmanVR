@@ -58,23 +58,34 @@ public class Game : MonoBehaviour
 
                 } else if (p.g > .5 && p.b < .8)
                 {
-                    //int pxCount = clearAllTouchingPixels(x, y, pixels, dims);
+                    int pxCount = clearAllTouchingPixels(x, y, pixels, dims);
 
-                    //if (pxCount < 5)
-                    //{
-                    //    GameObject d = Instantiate(dot);
-                    //    d.transform.position = new Vector3(x * cellWidth, 1, y * cellWidth);
-                    //    d.transform.position += new Vector3(cellWidth, 0, cellWidth);
-                    //    d.transform.parent = mapEmpty;
-                    //    dots.Add(d);
-                    //} else
-                    //{
-                    //    GameObject d = Instantiate(PowerPill);
-                    //    d.transform.position = new Vector3(x * cellWidth, 1, y * cellWidth);
-                    //    d.transform.position += new Vector3(cellWidth * 4, 0, cellWidth * 2);
-                    //    d.transform.parent = mapEmpty;
-                    //    pills.Add(d);
-                    //}
+                    if (pxCount < 5)
+                    {
+                        //GameObject d = Instantiate(dot);
+                        //d.transform.position = new Vector3(x * cellWidth, 1, y * cellWidth);
+                        //d.transform.position += new Vector3(cellWidth, 0, cellWidth);
+                        //d.transform.parent = mapEmpty;
+                        //dots.Add(d);
+
+                        GPUInstancing.Bots.bot item = new GPUInstancing.Bots.bot();
+                        item.pos = new Vector3(x * cellWidth, 1, y * cellWidth);
+                        item.pos += new Vector3(cellWidth, 0, cellWidth);
+                        dots.Add(item);
+                    }
+                    else
+                    {
+                        //GameObject d = Instantiate(PowerPill);
+                        //d.transform.position = new Vector3(x * cellWidth, 1, y * cellWidth);
+                        //d.transform.position += new Vector3(cellWidth * 4, 0, cellWidth * 2);
+                        //d.transform.parent = mapEmpty;
+                        //pills.Add(d);
+
+                        GPUInstancing.Bots.bot item = new GPUInstancing.Bots.bot();
+                        item.pos = new Vector3(x * cellWidth, 1, y * cellWidth);
+                        item.pos += new Vector3(cellWidth * 4, 0, cellWidth * 2);
+                        pills.Add(item);
+                    }
                 }
             }
         }
@@ -82,12 +93,24 @@ public class Game : MonoBehaviour
         //GPUInstancing.Bots.botLists = new List<CSBuffer<GPUInstancing.Bots.bot>>();
         //GPUInstancing.Bots.botLists.Add(new CSBuffer<GPUInstancing.Bots.bot>());
 
-        GPUInstancing.Bots.submeshInstances = new List<int>();
-        GPUInstancing.Bots.submeshInstances.Add(walls.Count);
-        //GPUInstancing.Bots.submeshInstances.Add(100);
-        
         GPUInstancing.Bots.bots = new CSBuffer<GPUInstancing.Bots.bot>("bots");
-        GPUInstancing.Bots.bots.list = walls;
+        GPUInstancing.Bots.bots.list.AddRange(walls);
+        //GPUInstancing.Bots.bots.list.AddRange(walls);
+        //GPUInstancing.Bots.bots.list.AddRange(walls);
+        GPUInstancing.Bots.bots.list.AddRange(dots);
+        //GPUInstancing.Bots.bots.list.AddRange(pills);
+
+        GPUInstancing.Bots.submeshInstances = new List<int>();
+
+        GPUInstancing.Bots.submeshInstances.Add(walls.Count * 1);
+        //GPUInstancing.Bots.submeshInstances.Add(walls.Count * 1);
+        //GPUInstancing.Bots.submeshInstances.Add(walls.Count * 1);
+        GPUInstancing.Bots.submeshInstances.Add(dots.Count * 1);
+        //GPUInstancing.Bots.submeshInstances.Add(pills.Count * 1);
+
+
+        //GPUInstancing.Bots.bots = new CSBuffer<GPUInstancing.Bots.bot>("bots");
+        //GPUInstancing.Bots.bots.list = walls;
         GPUInstancing.Bots.bots.fillBuffer();
     }
 

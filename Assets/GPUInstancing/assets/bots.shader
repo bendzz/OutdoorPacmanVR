@@ -116,8 +116,10 @@
 
 
             //int botID = (id * 3) / sub.trianglesCount + (instanceCount * (submeshI - 1));   // TODO this instanceCount won't work
+            //int botID = (id * 3) / sub.trianglesCount + botOffset;
             int botID = (id * 3) / sub.trianglesCount + botOffset;
-            
+            //botID *= 40;
+
             bot bo = bots[botID];
 
             //float3 normal = getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart], meshVertices[meshTriangles[tri + 1] + sub.verticesStart], meshVertices[meshTriangles[tri + 2] + sub.verticesStart]);
@@ -127,18 +129,15 @@
                 int vert = meshTriangles[tri + v] + sub.verticesStart;
 
                 geomOutput gout = (geomOutput)0;
-                //gout.pos = float4(meshVertices[vert], 0) * .1 + float4(bo.pos,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
                 //gout.pos = float4(meshVertices[vert], 0) * 1 + float4(bo.pos,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
-                gout.pos = float4(meshVertices[vert].xzy, 0) * 100 + float4(bo.pos,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
-                //gout.pos = float4(meshVertices[vert], 0) * .1 + float4(id,0,0,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
-                //gout.pos = float4(meshVertices[vert], 1) +float4(botID * 2, submeshI*1.5, 0, 0);
+                //gout.pos = float4(meshVertices[vert].xzy, 0) * 100 + float4(bo.pos,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
+                gout.pos = float4(meshVertices[vert].xzy, 0) * 1 + float4(bo.pos,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
                 gout.pos = mul(UNITY_MATRIX_VP, gout.pos);
-                //gout.info = float4(botID, bo.info.xyz);
                 gout.info.xyz = bo.info;
                 
                 //gout.color = float4(1, 0, 0, 1);
                 //gout.color.xyz = normal;
-                float4 color = float4(1, 0, .5, 1);
+                float4 color = float4(1, 1, 1, 1);
                 float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
                 gout.color.xyz = color.xyz * light;
 

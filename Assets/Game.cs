@@ -13,10 +13,6 @@ public class Game : MonoBehaviour
 
     public float cellWidth = .1f;
 
-    //List<GameObject> walls;
-    //List<GameObject> dots;
-    //List<GameObject> pills;
-
     List<GPUInstancing.Bots.bot> walls;
     List<GPUInstancing.Bots.bot> dots;
     List<GPUInstancing.Bots.bot> pills;
@@ -26,10 +22,6 @@ public class Game : MonoBehaviour
     {
         Color[] pixels = map.GetPixels();
         Vector2Int dims = new Vector2Int(map.width, map.height);
-
-        //walls = new List<GameObject>();
-        //dots = new List<GameObject>();
-        //pills = new List<GameObject>();
 
         walls = new List<GPUInstancing.Bots.bot>();
         dots = new List<GPUInstancing.Bots.bot>();
@@ -44,13 +36,6 @@ public class Game : MonoBehaviour
                 Color p = pixels[i];
                 if (p.b > .5 && p.r < .5)
                 {
-                    //print("xy " + x + " " + y);
-
-                    // GameObject wall = Instantiate(wallPiece);
-                    //wall.transform.position = new Vector3(x * cellWidth, 1, y * cellWidth);
-                    //wall.transform.parent = mapEmpty;
-                    //walls.Add(wall);
-
                     GPUInstancing.Bots.bot item = new GPUInstancing.Bots.bot();
                     item.pos = new Vector3(x * cellWidth, 1, y * cellWidth);
                     walls.Add(item);
@@ -62,12 +47,6 @@ public class Game : MonoBehaviour
 
                     if (pxCount < 5)
                     {
-                        //GameObject d = Instantiate(dot);
-                        //d.transform.position = new Vector3(x * cellWidth, 1, y * cellWidth);
-                        //d.transform.position += new Vector3(cellWidth, 0, cellWidth);
-                        //d.transform.parent = mapEmpty;
-                        //dots.Add(d);
-
                         GPUInstancing.Bots.bot item = new GPUInstancing.Bots.bot();
                         item.pos = new Vector3(x * cellWidth, 1, y * cellWidth);
                         item.pos += new Vector3(cellWidth, 0, cellWidth);
@@ -75,12 +54,6 @@ public class Game : MonoBehaviour
                     }
                     else
                     {
-                        //GameObject d = Instantiate(PowerPill);
-                        //d.transform.position = new Vector3(x * cellWidth, 1, y * cellWidth);
-                        //d.transform.position += new Vector3(cellWidth * 4, 0, cellWidth * 2);
-                        //d.transform.parent = mapEmpty;
-                        //pills.Add(d);
-
                         GPUInstancing.Bots.bot item = new GPUInstancing.Bots.bot();
                         item.pos = new Vector3(x * cellWidth, 1, y * cellWidth);
                         item.pos += new Vector3(cellWidth * 4, 0, cellWidth * 2);
@@ -90,25 +63,17 @@ public class Game : MonoBehaviour
             }
         }
 
-        //GPUInstancing.Bots.botLists = new List<CSBuffer<GPUInstancing.Bots.bot>>();
-        //GPUInstancing.Bots.botLists.Add(new CSBuffer<GPUInstancing.Bots.bot>());
 
         GPUInstancing.Bots.bots = new CSBuffer<GPUInstancing.Bots.bot>("bots");
         GPUInstancing.Bots.bots.list.AddRange(walls);
-        //GPUInstancing.Bots.bots.list.AddRange(walls);
-        //GPUInstancing.Bots.bots.list.AddRange(walls);
         GPUInstancing.Bots.bots.list.AddRange(dots);
         GPUInstancing.Bots.bots.list.AddRange(pills);
-        //GPUInstancing.Bots.bots.list.AddRange(pills);
 
         GPUInstancing.Bots.submeshInstances = new List<int>();
 
         GPUInstancing.Bots.submeshInstances.Add(walls.Count * 1);
-        //GPUInstancing.Bots.submeshInstances.Add(walls.Count * 1);
-        //GPUInstancing.Bots.submeshInstances.Add(walls.Count * 1);
         GPUInstancing.Bots.submeshInstances.Add(dots.Count * 1);
         GPUInstancing.Bots.submeshInstances.Add(pills.Count * 1);
-        //GPUInstancing.Bots.submeshInstances.Add(pills.Count * 1);
 
 
         //GPUInstancing.Bots.bots = new CSBuffer<GPUInstancing.Bots.bot>("bots");
@@ -154,6 +119,12 @@ public class Game : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        List<Vector4> ghostPositions = new List<Vector4>();
+        foreach(GPUInstancing.Bots.bot pill in pills)
+        {
+            ghostPositions.Add(pill.pos);
+        }
+
+        GPUInstancing.Bots.botMaterial.SetVectorArray("ghostPositions", ghostPositions);
     }
 }

@@ -11,11 +11,11 @@
         {
             //Tags { "RenderType" = "Opaque" }
             Tags { "RenderType" = "transparent " }
-            Blend One One // additive blending 
+            //Blend One One // additive blending 
             LOD 200
 
             Cull off
-            ZWRITE OFF
+            //ZWRITE OFF
 
             Pass
             {
@@ -40,6 +40,8 @@
         int submeshI;
         int instanceCount;
         int botOffset;
+
+        float4 ghostPositions[4];
 
         sampler2D _MainTex;
 
@@ -90,9 +92,8 @@
         {
             float4 pos : SV_POSITION;
             float2 uv : TEXCOORD0;
-            float4 color : TEXCOORD2;	// color. TODO rename
+            float4 color : COLOR;
             //float4 parentPos : TEXCOORD3;	//debug
-            //float4 info : COLOR;
             //UNITY_FOG_COORDS(1)
             float4 info : TEXCOORD1;
         };
@@ -103,51 +104,56 @@
         {
             int id = p[0].info.x;
 
-            //StructuredBuffer<Submesh> submeshes;
-            //StructuredBuffer<float3> meshVertices;
-            //StructuredBuffer<int> meshTriangles;
-            //StructuredBuffer<bot> bots;
-
-            //int submesh;
 
             Submesh sub = submeshes[submeshI];
-            //int meshInd = 0;
-            //if (submeshI == 0) meshInd = 1;
-            //if (submeshI == 1) meshInd = 2;
-            ////Submesh sub = submeshes[2-submeshI];
-            //Submesh sub = submeshes[meshInd];
 
-            //int vertOffset = (int)(id / sub.verticesCount) - verticesStart;
+            int tri = (id * 3) % (uint)sub.trianglesCount + sub.trianglesStart;
 
-            //int tri = ((id * 3) + sub.trianglesStart) % sub.trianglesCount;
-            int tri = (id * 3) % sub.trianglesCount + sub.trianglesStart;
-
-
-            //int botID = (id * 3) / sub.trianglesCount + (instanceCount * (submeshI - 1));   // TODO this instanceCount won't work
-            int botID = (id * 3) / sub.trianglesCount + botOffset;
-            //int botID = (id * 3) / sub.trianglesCount + 0;
-            //if (submeshI == 0)
-            //botID *= 40;
+            int botID = (id * 3) / (uint)sub.trianglesCount + botOffset;
 
             bot bo = bots[botID];
 
-            //float3 normal = getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart], meshVertices[meshTriangles[tri + 1] + sub.verticesStart], meshVertices[meshTriangles[tri + 2] + sub.verticesStart]);
-            float3 normal = -getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 1] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 2] + sub.verticesStart].xzy);
+            float3 vecs[3] = { meshVertices[meshTriangles[tri + 0] + sub.verticesStart].xzy, 
+                meshVertices[meshTriangles[tri + 1] + sub.verticesStart].xzy,meshVertices[meshTriangles[tri + 2] + sub.verticesStart].xzy };
 
             for (int v = 0; v < 3; v++) {
-                int vert = meshTriangles[tri + v] + sub.verticesStart;
+                vecs[v] += float4(bo.pos, 1);   // add object position
+            }
 
+            float4 color = float4(1, 1, 1, 1);
+
+            // pacman coloring
+            if (submeshI == 0)
+                //color = float4(0.129, 0.129, 1, 1);
+                color = float4(0.129, 0.129, 1, 1) * .9 + .1;
+            else
+                color = float4(1, 0.725, 0.686, 1);
+            color *= 1.4;
+
+            // Pacman game specific warping effect
+            for (v = 0; v < 3; v++) {
+                for (int g = 0; g < 3; g++) {
+                    float3 offset = lerp(bo.pos, vecs[v], .7) - ghostPositions[g];    // makes it half pushing objects half warping them
+                    float range = 4;
+                    float power = saturate((range - length(offset)) / range);
+                    power = pow(power, 2) * 1;
+                    vecs[v] = lerp(vecs[v], bo.pos, power * .7);    // shrink the affected objects slightly
+                    vecs[v] += normalize(offset) * power;
+                }
+            }
+
+            //float3 normal = getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart], meshVertices[meshTriangles[tri + 1] + sub.verticesStart], meshVertices[meshTriangles[tri + 2] + sub.verticesStart]);
+            //float3 normal = -getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 1] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 2] + sub.verticesStart].xzy);
+            float3 normal = -getNormal(vecs[0], vecs[1], vecs[2]);
+
+            float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
+            light = light * .8 + .2;
+            for (v = 0; v < 3; v++) {
                 geomOutput gout = (geomOutput)0;
-                //gout.pos = float4(meshVertices[vert], 0) * 1 + float4(bo.pos,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
-                //gout.pos = float4(meshVertices[vert].xzy, 0) * 100 + float4(bo.pos,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
-                gout.pos = float4(meshVertices[vert].xzy, 0) * 1 + float4(bo.pos,1); //+ float4(botID * 2, submeshI*1.5, 0, 0);
+                gout.pos = float4(vecs[v], 1);
                 gout.pos = mul(UNITY_MATRIX_VP, gout.pos);
                 gout.info.xyz = bo.info;
-                
-                //gout.color = float4(1, 0, 0, 1);
-                //gout.color.xyz = normal;
-                float4 color = float4(1, 1, 1, 1);
-                float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
+
                 gout.color.xyz = color.xyz * light;
 
                 triStream.Append(gout);
@@ -157,12 +163,8 @@
 
         fixed4 frag(geomOutput i) : SV_Target
         {
-            fixed4 col = i.color;//float4(1,0,1,1);
+            fixed4 col = i.color;
 
-            //col = float4(abs(35 - i.info.x % 70) / 35, 1, i.info.x / 19 % .5, 1);
-            //col = float4(i.info.xyz, 1);
-
-        col *= .1;
             return col;
         }
 

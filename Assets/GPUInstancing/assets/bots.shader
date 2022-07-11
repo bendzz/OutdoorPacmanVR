@@ -125,14 +125,14 @@
             // pacman coloring
             if (submeshI == 0)
                 //color = float4(0.129, 0.129, 1, 1);
-                color = float4(0.129, 0.129, 1, 1) * .9 + .1;
+                color = float4(0.129, 0.129, 1, 1) * .5 + .1;
             else
                 color = float4(1, 0.725, 0.686, 1);
-            color *= 1.4;
+            color *= 1.2;
 
             // Pacman game specific warping effect
             for (v = 0; v < 3; v++) {
-                for (int g = 0; g < 3; g++) {
+                for (int g = 0; g < 1; g++) {
                     float3 offset = lerp(bo.pos, vecs[v], .7) - ghostPositions[g];    // makes it half pushing objects half warping them
                     float range = 4;
                     float power = saturate((range - length(offset)) / range);

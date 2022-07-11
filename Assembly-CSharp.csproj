@@ -62,6 +62,7 @@
     <Compile Include="Assets\Game.cs" />
     <Compile Include="Assets\GPUInstancing\GPUInstancing.cs" />
     <Compile Include="Assets\GPUInstancing\CShaders.cs" />
+    <Compile Include="Assets\Ghost.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\GPUInstancing\assets\Noise.cginc" />

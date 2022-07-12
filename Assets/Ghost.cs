@@ -69,6 +69,7 @@ public class Ghost : MonoBehaviour
     Vector2Int oldPosCenter;
 
     Material material;
+    AudioSource audio;
 
     // Start is called before the first frame update
     void Start()
@@ -128,6 +129,10 @@ public class Ghost : MonoBehaviour
 
         MeshRenderer renderer = this.GetComponent<MeshRenderer>();
         material = renderer.material;
+
+        audio = this.GetComponent<AudioSource>();
+
+        audio.pitch = (4-(float)ghost) / 2;
 
         if (ghost == Name.blinky)
         {

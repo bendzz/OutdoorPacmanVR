@@ -26,6 +26,7 @@ public class Game : MonoBehaviour
 
     [Tooltip("The VR player's head. This movement controls pacman etc")]
     public Camera cam;
+    public Transform OVRCameraRig;
 
     [Tooltip("Resizing the game board for better play")]
     public Vector3 mapScale = Vector3.one;
@@ -60,7 +61,9 @@ public class Game : MonoBehaviour
     /// 28x36 navigation grid
     /// </summary>
     public navTile[,] navs;
-     
+
+    Vector3 rigStartPos;
+
 
     // Start is called before the first frame update
     void Start()
@@ -72,6 +75,7 @@ public class Game : MonoBehaviour
         // Wanted FFR but it's just not gonna turn on -__- glitchy POS https://forum.unity.com/threads/fixed-foveated-rendering-on-oculus-quest-not-working.686662/page-4
         //fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.HighTop; // it's the maximum foveation level
 
+        rigStartPos = OVRCameraRig.position;
 
         Color[] pixels = map.GetPixels();
         Color[] pixelsNav = mapNav.GetPixels();
@@ -220,17 +224,18 @@ public class Game : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));
+
+
         List<Vector4> ghostPositions = new List<Vector4>();
         foreach(Ghost ghost in ghosts)
         {
             ghostPositions.Add(ghost.transform.position);
         }
-
-
         GPUInstancing.Bots.botMaterial.SetVectorArray("ghostPositions", ghostPositions);
 
-        mapCenter = cam.transform.position;
-
+        //mapCenter = cam.transform.position;
         GPUInstancing.Bots.botMaterial.SetVector("mapScale", mapScale);
         GPUInstancing.Bots.botMaterial.SetVector("mapOffset", mapOffset);
         GPUInstancing.Bots.botMaterial.SetVector("mapCenter", mapCenter);

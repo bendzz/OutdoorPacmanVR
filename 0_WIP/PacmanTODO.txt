@@ -1,0 +1,87 @@
+Outdoor Pacman VR
+https://www.wanderingcrystal.com/fun-things-to-do-in-edmonton-for-adults/
+> With over 50 Arcade games to choose from, you can spend the evening drinking beer and eating delicious street food while cheering on your friend as they try to flee from the ghosts in Pacman.
+
+-Space:
+	-When you hit an IRL wall, hold grip and turn and the game world will turn with you in 90 degree increments (and the game will pause).
+
+STARTUP
+-Black screen
+>Yeah took some shrooms yesterday and it suddenly seemed like the best idea ever -dev
+-press any button to continue
+
+GHOSTS
+https://gameinternals.com/understanding-pac-man-ghost-behavior
+-Leave ghost house to the left always
+
+July 11 TODO
+			-teleporting
+-spawning
+	-ghost house
+	-4 ghosts
+		-ghost names/colors
+-AI
+-Player + VR
+	-world movement scaling 
+	-ghost speed scaling option
+-splash screen and press to continue
+
+TODO
+-Add a spawn point for the ghosts to run to when leaving the house
+-Add a player 
+
+
+
+
+TODO LATER
+-Ghost faces the 4 directions it's walking
+	-Its EYES face the target it's going toward (or straight ahead if no target)
+	-They have hidden horrific mouths that open slowly as they get near, if they're facing the player's position.
+-When player respawning, it shrinks the map to be short/almost flat and tells you to walk back to the spawn point IRL.
+
+TODO ghost audio
+	-a low pulsing hum audible from a ways out.
+	-Each ghost sounds different..?
+
+
+
+TODO July 12
+-Scale ghosts huge when they get near player (for fear)
+-raise the walls higher when ghosts are around
+-smaller audio zones
+-Darker passthrough (especially the sky) for creepiness
+-Darker blue walls
+
+GAMPLAY
+-A packerman, and dot eating
+    // Game TODO
+    // spawn order: pinky, inky, clyde
+    // give dots to current preferred ghost
+    // reset counters on new level
+    // TODO later: The 'keep ghosts stuck in the ghost house with global dot counter glitch' trick 
+    // Global counter; pinky leaves at 7, inky at 17, clyde at 32?
+
+SETTINGS
+OUTPUT: 
+	-A floating debug log that appears when paused or recently changed a setting
+	-Always in front of player, but doesn't follow head tilt, only Y rotation (so you can look up to read old stuff)
+-map scale
+	-scale the map vertically to counteract this
+-vertical map height (for short people)
+-player speed scale
+-Ghost speed scale
+
+CONTROLS
+-GRIP to lock map to headset for repositioning IRL space
+	-pause game during this
+-Pause button
+
+
+
+
+
+
+
+
+
+

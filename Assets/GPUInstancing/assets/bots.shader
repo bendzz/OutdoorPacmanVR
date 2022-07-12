@@ -135,7 +135,7 @@
                 color = float4(1, 0.725, 0.686, 1);
             color *= 1.2;
 
-            color.a = vecs[0].y;
+            color.a = saturate(vecs[0].y + .4);
 
             //if ((id) % 10 != 0) return;  // testing 
 

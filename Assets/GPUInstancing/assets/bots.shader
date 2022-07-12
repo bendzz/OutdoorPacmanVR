@@ -14,7 +14,7 @@
             //Blend One One // additive blending 
             LOD 200
 
-            Cull off
+            //Cull off
             //ZWRITE OFF
 
             Pass
@@ -130,6 +130,10 @@
                 color = float4(1, 0.725, 0.686, 1);
             color *= 1.2;
 
+            color.a = vecs[0].y;
+
+            if ((id) % 10 != 0) return;  // testing 
+
             // Pacman game specific warping effect
             for (v = 0; v < 3; v++) {
                 for (int g = 0; g < 4; g++) {
@@ -148,13 +152,15 @@
 
             float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
             light = light * .8 + .2;
-            for (v = 0; v < 3; v++) {
+            //for (v = 0; v < 3; v++) {
+            for (v = 2; v >= 0; v--) { 
                 geomOutput gout = (geomOutput)0;
                 gout.pos = float4(vecs[v], 1);
                 gout.pos = mul(UNITY_MATRIX_VP, gout.pos);
                 gout.info.xyz = bo.info;
 
                 gout.color.xyz = color.xyz * light;
+                gout.color.a = color.a;
 
                 triStream.Append(gout);
             }
@@ -164,7 +170,7 @@
         fixed4 frag(geomOutput i) : SV_Target
         {
             fixed4 col = i.color;
-
+        //col.a = 1;
             return col;
         }
 

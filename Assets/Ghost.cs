@@ -233,14 +233,14 @@ public class Ghost : MonoBehaviour
                             {
                                 Vector3 tilePos = Game.navToWorld(oldPos + directions[(int)dir]);
                                 float distance = Vector3.Distance(target, tilePos);
-                                print("turn option " + dir + " distance " + distance);
+                                //print("turn option " + dir + " distance " + distance);
                                 if (distance < nearestTile)
                                 {
                                     d = dir;
                                     nearestTile = distance;
                                 }
                             }
-                            print("CHOSE DIRECTION " + d);
+                            //print("CHOSE DIRECTION " + d);
                         }
                     }
 

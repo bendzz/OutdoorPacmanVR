@@ -132,7 +132,7 @@
 
             color.a = vecs[0].y;
 
-            if ((id) % 10 != 0) return;  // testing 
+            //if ((id) % 10 != 0) return;  // testing 
 
             // Pacman game specific warping effect
             for (v = 0; v < 3; v++) {

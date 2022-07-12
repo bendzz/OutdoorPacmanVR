@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR;
+using static OVRManager;
+//using static OVRPlugin;
 
 public class Game : MonoBehaviour
 {
@@ -47,7 +50,7 @@ public class Game : MonoBehaviour
     /// 28x36 navigation grid
     /// </summary>
     public navTile[,] navs;
-
+     
 
     // Start is called before the first frame update
     void Start()
@@ -55,6 +58,10 @@ public class Game : MonoBehaviour
         level = 1;
 
         instance = this;
+
+        //fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.HighTop; // it's the maximum foveation level
+        //fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.High; // it's the maximum foveation level
+
 
         Color[] pixels = map.GetPixels();
         Color[] pixelsNav = mapNav.GetPixels();
@@ -203,6 +210,32 @@ public class Game : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Doesn't seem to do anything at all >__>
+        // https://developer.oculus.com/documentation/unity/unity-fixed-foveated-rendering/
+        //OVRManager.fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.High; // it's the maximum foveation level
+        //OVRManager.useDynamicFixedFoveatedRendering = true;
+
+        //fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.High; // it's the maximum foveation level
+        //fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.HighTop; // it's the maximum foveation level
+        //useDynamicFixedFoveatedRendering = true;
+
+        //XRSettings.eyeTextureResolutionScale = .2f;
+
+
+        //int FixedFoveatedRenderingLevel = GameUserSettings.GetIntegerValue("FFRLevel") + 1; //set to +1 for hacky solution for now
+        //OVRManager.FixedFoveatedRenderingLevel FFR = (OVRManager.FixedFoveatedRenderingLevel)FixedFoveatedRenderingLevel;
+        //OVRManager.fixedFoveatedRenderingLevel = FFR;
+
+        //int FixedFoveatedRenderingLevel2 = GameUserSettings.GetIntegerValue("FFRLevel");
+        //OVRManager.FixedFoveatedRenderingLevel FFR2 = (OVRManager.FixedFoveatedRenderingLevel)FixedFoveatedRenderingLevel2;
+        //OVRManager.fixedFoveatedRenderingLevel = FFR2;
+
+        //fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.HighTop; // it's the maximum foveation level
+        //fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.High; // it's the maximum foveation level
+        //useDynamicFixedFoveatedRendering = false;
+        // no go on FFR -__- https://forum.unity.com/threads/fixed-foveated-rendering-on-oculus-quest-not-working.686662/page-4
+
+
         List<Vector4> ghostPositions = new List<Vector4>();
         //foreach(GPUInstancing.Bots.bot pill in pills)
         //{

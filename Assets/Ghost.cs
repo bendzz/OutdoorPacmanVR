@@ -6,7 +6,7 @@ public class Ghost : MonoBehaviour
 {
     Game game;
 
-    float speed;
+    float speedDefault;
 
     public enum Direction
     {
@@ -19,17 +19,12 @@ public class Ghost : MonoBehaviour
     Vector2Int oldPos;
     Vector2Int oldPosCenter;
 
-    /// <summary>
-    /// The position of the last 3D tile the ghost checked for turns etc, so it can countdown to check again
-    /// </summary>
-    //Vector3 previousCheck;
-
     // Start is called before the first frame update
     void Start()
     {
         game = Game.instance;
 
-        speed = game.ghostSpeedDefault;
+        speedDefault = game.ghostSpeedDefault;
 
         directions = new Vector2Int[4];
         directions[0] = new Vector2Int(0, 1);
@@ -67,82 +62,56 @@ public class Ghost : MonoBehaviour
         Vector2Int pos = Game.worldToNav(transform.position);
         Vector2Int posCenter = Game.worldToNavCenters(transform.position);
 
-        if (posCenter != oldPosCenter)
-        {
-            int oppositeDirection = (int)direction - 2;
-            if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
-            List<Direction> validDirections = new List<Direction>();
-            for (int d = 0; d < 4; d++)
-            {
-                //if (d == oppositeDirection || d == (int)direction)
-                if (d == oppositeDirection)
-                    continue;
-                //if (Game.nav(pos + directions[d]).traversible)
-                if (Game.nav(oldPos + directions[d]).traversible)
-                {
-                    //print("d " + d + "direction " + (int)direction + " opposite " + oppositeDirection);
-                    //direction = (Direction)d;
-                    //transform.position = Game.navToWorld(pos.x, pos.y);
-                    //break;
-                    validDirections.Add((Direction)d);
-                }
-            }
-            if (validDirections.Count > 0)
-            {
-                //print("direction " + direction);
-                //foreach(Direction dd in validDirections)
-                //{
-                //    print("option " + dd);
-                //}
-                Direction d = validDirections[(int)(Random.value * (validDirections.Count - 1) + .5f)];
-                direction = d;
+        // TODO: Check if ghost is outside bounds, if it is put it back at spawn or the nearest traversible tile
 
-                // This bit starts it off in the right place and prevents it from running 2 direction changes in a row
-                Vector2 offset = (Vector2)directions[(int)direction] * .0001f;
-                transform.position = Game.navToWorld(pos.x, pos.y) + new Vector3(offset.x, 0, offset.y);
+        if (posCenter != oldPosCenter)  // moved past the center of a tile, check for new directions
+        {
+            // see if it's out of bounds and teleporting
+            if (pos.x > 26)
+            {
+                transform.position = Game.navToWorld(1, pos.y);
                 oldPosCenter = posCenter = Game.worldToNavCenters(transform.position);
-                //print("final direction " + direction);
+                oldPos = pos = Game.worldToNav(transform.position);
+            } else if (pos.x < 1)
+            {
+                transform.position = Game.navToWorld(26, pos.y);
+                oldPosCenter = posCenter = Game.worldToNavCenters(transform.position);
+                oldPos = pos = Game.worldToNav(transform.position);
+            } else   // Still within bounds
+            {
+                // Get valid directions to choose from
+                int oppositeDirection = (int)direction - 2;
+                if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
+                List<Direction> validDirections = new List<Direction>();
+                for (int d = 0; d < 4; d++)
+                {
+                    //if (d == oppositeDirection || d == (int)direction)
+                    if (d == oppositeDirection)
+                        continue;
+                    try   // sometimes checks out of bounds tiles
+                    {
+                        if (Game.nav(oldPos + directions[d]).traversible)
+                        {
+                            validDirections.Add((Direction)d);
+                        }
+                    } catch (System.Exception e) { }
+                }
+
+                if (validDirections.Count > 0)
+                {
+                    Direction d = validDirections[(int)(Random.value * (validDirections.Count - 1) + .5f)];
+                    direction = d;
+
+                    // This bit starts it off in the right place and prevents it from running 2 direction changes in a row
+                    Vector2 offset = (Vector2)directions[(int)direction] * .0001f;
+                    transform.position = Game.navToWorld(pos.x, pos.y) + new Vector3(offset.x, 0, offset.y);
+                    oldPosCenter = posCenter = Game.worldToNavCenters(transform.position);
+                }
             }
         }
 
-        //if (Vector3.Distance(transform.position, previousCheck) >= game.cellWidth * 8)
-        //{
-        //    int oppositeDirection = (int)direction - 2;
-        //    if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
-        //    //print("direction " + (int)direction + " opposite " + oppositeDirection);
-        //    for (int d = 0; d < 4; d++)
-        //    {
-        //        if (d == oppositeDirection || d == (int)direction)
-        //            continue;
-        //        if (Game.nav(pos + directions[d]).traversible)
-        //        {
-        //            direction = (Direction)d;
-        //            //transform.position = Game.navToWorld(pos.x, pos.y);
-        //        }
-        //    }
-        //    //previousCheck = transform.position;
-        //}
-
-        // If crossing over the boundary of 
-
-        //if (pos != oldPos)
-        //{
-        //    Game.navTile tile = Game.nav(pos);
-        //    print("new tile " + tile.traversible);
-        //    if (tile.turn)
-        //    {
-        //        print("turning");
-        //        for (int d = 0; d < 4; d++)
-        //        {
-        //            if (Game.nav(pos + directions[d]).traversible)
-        //            {
-        //                direction = (Direction)d;
-        //            }
-        //        }
-        //    }
-        //}
-
-        transform.position += vec23(directions[(int)direction]) * speed * Time.deltaTime;
+        speedDefault = game.ghostSpeedDefault;
+        transform.position += vec23(directions[(int)direction]) * speedDefault * Time.deltaTime;
 
 
         oldPos = pos;

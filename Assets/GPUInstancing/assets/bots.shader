@@ -43,6 +43,11 @@
 
         float4 ghostPositions[4];
 
+        float3 mapScale;
+        float3 mapOffset;
+        float3 mapCenter;
+
+
         sampler2D _MainTex;
 
         //struct Input
@@ -134,6 +139,7 @@
 
             //if ((id) % 10 != 0) return;  // testing 
 
+
             // Pacman game specific warping effect
             for (v = 0; v < 3; v++) {
                 for (int g = 0; g < 4; g++) {
@@ -144,6 +150,14 @@
                     vecs[v] = lerp(vecs[v], bo.pos, power * .7);    // shrink the affected objects slightly
                     vecs[v] += normalize(offset) * power;
                 }
+            }
+
+            // map scaling
+            for (int v = 0; v < 3; v++) {
+                vecs[v] += mapOffset;
+                vecs[v] -= mapCenter;
+                vecs[v] = vecs[v] * mapScale;
+                vecs[v] += mapCenter;
             }
 
             //float3 normal = getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart], meshVertices[meshTriangles[tri + 1] + sub.verticesStart], meshVertices[meshTriangles[tri + 2] + sub.verticesStart]);

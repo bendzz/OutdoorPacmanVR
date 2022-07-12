@@ -11,7 +11,10 @@ public class Game : MonoBehaviour
 
     public Texture2D map;
     public Texture2D mapNav;
+    [Tooltip("An empty to parent any dynamically spawned entities to, to keep the hierarchy clean")]
     public Transform mapEmpty;
+    [Tooltip("Where the ghosts head while in spawning mode, to exit the ghost house")]
+    public Transform spawnTarget;
     public GameObject wallPiece;
     public GameObject dot;
     public GameObject PowerPill;
@@ -22,6 +25,8 @@ public class Game : MonoBehaviour
     public List<Ghost> ghosts;
     public float ghostSpeedDefault = 5;
 
+    [Tooltip("Current level; when this script starts it resets to 1")]
+    public int level;
 
     List<GPUInstancing.Bots.bot> walls;
     List<GPUInstancing.Bots.bot> dots;
@@ -43,9 +48,12 @@ public class Game : MonoBehaviour
     /// </summary>
     public navTile[,] navs;
 
+
     // Start is called before the first frame update
     void Start()
     {
+        level = 1;
+
         instance = this;
 
         Color[] pixels = map.GetPixels();
@@ -154,31 +162,6 @@ public class Game : MonoBehaviour
         GPUInstancing.Bots.bots.fillBuffer();
     }
 
-    public static Vector3 navToWorld(int x, int y)
-    {
-        //return new Vector3(x * Game.instance.cellWidth * 8, 1, y * Game.instance.cellWidth * 8);
-        return new Vector3((x + .5f) * Game.instance.cellWidth * 8, 1, (y + .5f) * Game.instance.cellWidth * 8);
-    }
-    /// <summary>
-    /// The number will change as the position crossed over the edges between tiles
-    /// </summary>
-    public static Vector2Int worldToNav(Vector3 pos)
-    {
-        return new Vector2Int((int)(pos.x / (Game.instance.cellWidth * 8)), (int)(pos.z / (Game.instance.cellWidth * 8)));
-    }
-    /// <summary>
-    /// The number will change as it crosses over the CENTER of tiles; grid is offset half a tile down/left
-    /// </summary>
-    public static Vector2Int worldToNavCenters(Vector3 pos)
-    {
-        pos -= new Vector3(Game.instance.cellWidth * 4, 0, Game.instance.cellWidth * 4);
-        return new Vector2Int((int)((pos.x) / (Game.instance.cellWidth * 8)), (int)(pos.z / (Game.instance.cellWidth * 8)));
-    }
-
-    public static navTile nav(Vector2Int pos)
-    {
-        return Game.instance.navs[pos.x, pos.y];
-    }
 
     int clearAllTouchingPixels(int inX, int inY, Color[] pixels, Vector2Int dims)
     {
@@ -233,5 +216,38 @@ public class Game : MonoBehaviour
 
 
         GPUInstancing.Bots.botMaterial.SetVectorArray("ghostPositions", ghostPositions);
+    }
+
+
+
+
+    // Nav helper functions
+    public static Vector3 navToWorld(Vector2Int navPos)
+    {
+        return navToWorld(navPos.x, navPos.y);
+    }
+    public static Vector3 navToWorld(int x, int y)
+    {
+        //return new Vector3(x * Game.instance.cellWidth * 8, 1, y * Game.instance.cellWidth * 8);
+        return new Vector3((x + .5f) * Game.instance.cellWidth * 8, 1, (y + .5f) * Game.instance.cellWidth * 8);
+    }
+    /// <summary>
+    /// The number will change as the position crossed over the edges between tiles
+    /// </summary>
+    public static Vector2Int worldToNav(Vector3 pos)
+    {
+        return new Vector2Int((int)(pos.x / (Game.instance.cellWidth * 8)), (int)(pos.z / (Game.instance.cellWidth * 8)));
+    }
+    /// <summary>
+    /// The number will change as it crosses over the CENTER of tiles; grid is offset half a tile down/left
+    /// </summary>
+    public static Vector2Int worldToNavCenters(Vector3 pos)
+    {
+        pos -= new Vector3(Game.instance.cellWidth * 4, 0, Game.instance.cellWidth * 4);
+        return new Vector2Int((int)((pos.x) / (Game.instance.cellWidth * 8)), (int)(pos.z / (Game.instance.cellWidth * 8)));
+    }
+    public static navTile nav(Vector2Int pos)
+    {
+        return Game.instance.navs[pos.x, pos.y];
     }
 }

@@ -36,15 +36,33 @@ public class Ghost : MonoBehaviour
         spawning,
         chase,
         scatter,
-        wander
+        panic,  // edible
+        dead    // return home
     }
 
     public State state = State.unspawned;
     [Tooltip("if true the ghosts wander randomly in the ghost house, instead of the up down original animation.")]
     public bool wanderUnspawned = true;
 
+    // TODO
+    // Ghost
+    // state spawning (with spawn point target outside door)
+    // Ghosts can't go upward on green nav points!
+
+
+
+
     /// <summary>
-    /// For playing the unspawned animation
+    /// One ghost at a time tracks how many dots pacman has eaten to determine when it spawns https://www.gamedeveloper.com/design/the-pac-man-dossier
+    /// </summary>
+    int dotCounter;
+    /// <summary>
+    /// How big the dotCounter gets before the ghost spawns
+    /// </summary>
+    int dotLimit;
+
+    /// <summary>
+    /// For playing the unspawned animation and respawning
     /// </summary>
     Vector3 startPosition;
     Vector2Int oldPos;
@@ -64,6 +82,21 @@ public class Ghost : MonoBehaviour
         directions[1] = new Vector2Int(1, 0);
         directions[2] = new Vector2Int(0, -1);
         directions[3] = new Vector2Int(-1, 0);
+
+        // set dotLimits, from https://www.gamedeveloper.com/design/the-pac-man-dossier ghost house section
+        dotCounter = 0;
+        dotLimit = 0;
+        if (ghost == Name.inky)
+        {
+            if (game.level == 1)
+                dotLimit = 30;
+        } else if (ghost == Name.clyde)
+        {
+            if (game.level == 1)
+                dotLimit = 60;
+            else if (game.level == 2)
+                dotLimit = 50;
+        }
 
         // Spawn in a valid position somewhere
         /*
@@ -120,6 +153,9 @@ public class Ghost : MonoBehaviour
 
         Game.navTile currentTile = Game.nav(pos);
 
+        if (state == State.unspawned)
+            if (dotCounter >= dotLimit)
+                state = State.spawning;
 
         if (state == State.unspawned && !currentTile.ghostStart)
             transform.position = startPosition;
@@ -142,8 +178,7 @@ public class Ghost : MonoBehaviour
                 oldPos = pos = Game.worldToNav(transform.position);
             } else   // Still within bounds
             {
-                // Change direction?
-                // Get valid directions to choose from
+                // Get valid travel directions to choose from
                 int oppositeDirection = (int)direction - 2;
                 if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
                 List<Direction> validDirections = new List<Direction>();
@@ -156,7 +191,11 @@ public class Ghost : MonoBehaviour
                     {
                         Game.navTile tile = Game.nav(oldPos + directions[d]);
                         if (tile.traversible)
+                        {
                             traversible = true;
+                            if (tile.noGhostUp && d == 0)
+                                traversible = false;
+                        }
                         if (state == State.unspawned && wanderUnspawned)
                         {
                             traversible = false;
@@ -175,7 +214,36 @@ public class Ghost : MonoBehaviour
 
                 if (validDirections.Count > 0)
                 {
+                    // wander randomly; default
                     Direction d = validDirections[(int)(Random.value * (validDirections.Count - 1) + .5f)];
+
+                    if (validDirections.Count > 1)
+                    {
+                        // Change direction?
+                        Vector3 target = Vector3.zero;
+                        if (state == State.spawning)
+                            target = game.spawnTarget.position;
+
+
+                        if (target != Vector3.zero)
+                        {
+                            // choose the direction tile nearest to the target point
+                            float nearestTile = 100000000;
+                            foreach (Direction dir in validDirections)
+                            {
+                                Vector3 tilePos = Game.navToWorld(oldPos + directions[(int)dir]);
+                                float distance = Vector3.Distance(target, tilePos);
+                                print("turn option " + dir + " distance " + distance);
+                                if (distance < nearestTile)
+                                {
+                                    d = dir;
+                                    nearestTile = distance;
+                                }
+                            }
+                            print("CHOSE DIRECTION " + d);
+                        }
+                    }
+
                     direction = d;
 
                     // This bit starts it off in the right place and prevents it from running 2 direction changes in a row

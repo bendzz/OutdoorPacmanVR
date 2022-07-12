@@ -112,7 +112,7 @@ public class Game : MonoBehaviour
                         tile.color = p;
                         if (p == Color.blue)
                         {
-                            tile.traversible = true;
+                            tile.traversible = false;
                             tile.ghostStart = true;
                         }
                         else

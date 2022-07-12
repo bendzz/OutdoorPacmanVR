@@ -200,7 +200,6 @@ MonoBehaviour:
   - {fileID: 8763114918133364651}
   - {fileID: 8885864409304601092}
   - {fileID: 4074802807875945057}
-  - {fileID: 4074802807875945057}
   botShader: {fileID: 4800000, guid: 8de1e5b4daca0a44f92352030775a81c, type: 3}
 --- !u!1 &256156403
 GameObject:

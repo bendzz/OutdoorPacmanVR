@@ -15,7 +15,7 @@ public class Ghost : MonoBehaviour
         clyde
     }
 
-    [TooltipAttribute("blinky, pinky, inky, clyde == red, pink, blue, orange ghosts.")]
+    [Tooltip("blinky, pinky, inky, clyde == red, pink, blue, orange ghosts.")]
     public Name ghost = Name.blinky;
 
     Game game;
@@ -39,8 +39,14 @@ public class Ghost : MonoBehaviour
         wander
     }
 
+    public State state = State.unspawned;
+    [Tooltip("if true the ghosts wander randomly in the ghost house, instead of the up down original animation.")]
+    public bool wanderUnspawned = true;
 
-
+    /// <summary>
+    /// For playing the unspawned animation
+    /// </summary>
+    Vector3 startPosition;
     Vector2Int oldPos;
     Vector2Int oldPosCenter;
 
@@ -73,6 +79,8 @@ public class Ghost : MonoBehaviour
         }
         */
 
+        startPosition = transform.position;
+
         //previousCheck = transform.position;
         Vector2Int pos = Game.worldToNav(transform.position);
         //print("pos " + pos);
@@ -89,13 +97,17 @@ public class Ghost : MonoBehaviour
         material = renderer.material;
 
         if (ghost == Name.blinky)
+        {
             material.SetColor("_Color", Color.red);
+            state = State.scatter;
+        }
         else if (ghost == Name.pinky)
             material.SetColor("_Color", new Color(1,.5f,.7f,1));
         else if (ghost == Name.inky)
             material.SetColor("_Color", new Color(0, 1, 1, 1));
         else if (ghost == Name.clyde)
             material.SetColor("_Color", new Color(1, .5f, .1f, 1));
+
     }
 
     // Update is called once per frame
@@ -105,6 +117,15 @@ public class Ghost : MonoBehaviour
         Vector2Int posCenter = Game.worldToNavCenters(transform.position);
 
         // TODO: Check if ghost is outside bounds, if it is put it back at spawn or the nearest traversible tile
+
+        Game.navTile currentTile = Game.nav(pos);
+
+
+        if (state == State.unspawned && !currentTile.ghostStart)
+            transform.position = startPosition;
+
+        if (state == State.spawning && currentTile.traversible)
+            state = State.scatter;  // spawned in proper
 
         if (posCenter != oldPosCenter)  // moved past the center of a tile, check for new directions
         {
@@ -121,22 +142,35 @@ public class Ghost : MonoBehaviour
                 oldPos = pos = Game.worldToNav(transform.position);
             } else   // Still within bounds
             {
+                // Change direction?
                 // Get valid directions to choose from
                 int oppositeDirection = (int)direction - 2;
                 if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
                 List<Direction> validDirections = new List<Direction>();
                 for (int d = 0; d < 4; d++)
                 {
-                    //if (d == oppositeDirection || d == (int)direction)
                     if (d == oppositeDirection)
                         continue;
+                    bool traversible = false;
                     try   // sometimes checks out of bounds tiles
                     {
-                        if (Game.nav(oldPos + directions[d]).traversible)
+                        Game.navTile tile = Game.nav(oldPos + directions[d]);
+                        if (tile.traversible)
+                            traversible = true;
+                        if (state == State.unspawned && wanderUnspawned)
                         {
-                            validDirections.Add((Direction)d);
+                            traversible = false;
+                            if (tile.ghostStart)
+                                traversible = true;
+                        } else if (state == State.spawning)
+                        {
+                            if (tile.ghostStart)
+                                traversible = true;
                         }
                     } catch (System.Exception e) { }
+                    if (traversible)
+                        validDirections.Add((Direction)d);
+
                 }
 
                 if (validDirections.Count > 0)
@@ -152,9 +186,20 @@ public class Ghost : MonoBehaviour
             }
         }
 
+        if (state == State.unspawned && !wanderUnspawned)   // original pacman ghost house animation
+        {
+            if (direction != Direction.up && direction != Direction.down)
+                direction = Direction.up;
+
+            float maxWander = game.cellWidth * 8;
+            if (transform.position.z < startPosition.z - maxWander)
+                direction = Direction.up;
+            else if (transform.position.z > startPosition.z + maxWander)
+                direction = Direction.down;
+        }
+
         speedDefault = game.ghostSpeedDefault;
         transform.position += vec23(directions[(int)direction]) * speedDefault * Time.deltaTime;
-
 
         oldPos = pos;
         oldPosCenter = posCenter;

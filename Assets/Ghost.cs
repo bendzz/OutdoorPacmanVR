@@ -4,6 +4,20 @@ using UnityEngine;
 
 public class Ghost : MonoBehaviour
 {
+    /// <summary>
+    /// Red, pink, blue, orange
+    /// </summary>
+    public enum Name
+    {
+        blinky,
+        pinky,
+        inky,
+        clyde
+    }
+
+    [TooltipAttribute("blinky, pinky, inky, clyde == red, pink, blue, orange ghosts.")]
+    public Name ghost = Name.blinky;
+
     Game game;
 
     float speedDefault;
@@ -16,8 +30,21 @@ public class Ghost : MonoBehaviour
     public Direction direction;
     Vector2Int[] directions;
 
+    public enum State   // TODO
+    {
+        unspawned,
+        spawning,
+        chase,
+        scatter,
+        wander
+    }
+
+
+
     Vector2Int oldPos;
     Vector2Int oldPosCenter;
+
+    Material material;
 
     // Start is called before the first frame update
     void Start()
@@ -32,6 +59,8 @@ public class Ghost : MonoBehaviour
         directions[2] = new Vector2Int(0, -1);
         directions[3] = new Vector2Int(-1, 0);
 
+        // Spawn in a valid position somewhere
+        /*
         //print("game" + game + " navs " + game.navs);
         for (int x = 15; x < 28; x++)
         {
@@ -42,6 +71,7 @@ public class Ghost : MonoBehaviour
                 break;
             }
         }
+        */
 
         //previousCheck = transform.position;
         Vector2Int pos = Game.worldToNav(transform.position);
@@ -54,6 +84,18 @@ public class Ghost : MonoBehaviour
             }
         }
         oldPosCenter = Game.worldToNavCenters(transform.position);
+
+        MeshRenderer renderer = this.GetComponent<MeshRenderer>();
+        material = renderer.material;
+
+        if (ghost == Name.blinky)
+            material.SetColor("_Color", Color.red);
+        else if (ghost == Name.pinky)
+            material.SetColor("_Color", new Color(1,.5f,.7f,1));
+        else if (ghost == Name.inky)
+            material.SetColor("_Color", new Color(0, 1, 1, 1));
+        else if (ghost == Name.clyde)
+            material.SetColor("_Color", new Color(1, .5f, .1f, 1));
     }
 
     // Update is called once per frame

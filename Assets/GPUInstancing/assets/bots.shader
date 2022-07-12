@@ -132,7 +132,7 @@
 
             // Pacman game specific warping effect
             for (v = 0; v < 3; v++) {
-                for (int g = 0; g < 1; g++) {
+                for (int g = 0; g < 4; g++) {
                     float3 offset = lerp(bo.pos, vecs[v], .7) - ghostPositions[g];    // makes it half pushing objects half warping them
                     float range = 4;
                     float power = saturate((range - length(offset)) / range);

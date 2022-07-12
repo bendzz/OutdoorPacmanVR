@@ -15,11 +15,13 @@ public class Game : MonoBehaviour
     public GameObject wallPiece;
     public GameObject dot;
     public GameObject PowerPill;
-    public GameObject ghostRef;
-
+    //public GameObject ghostRef;
     public float cellWidth = .1f;
 
+    // Ghosts
+    public List<Ghost> ghosts;
     public float ghostSpeedDefault = 5;
+
 
     List<GPUInstancing.Bots.bot> walls;
     List<GPUInstancing.Bots.bot> dots;
@@ -110,7 +112,7 @@ public class Game : MonoBehaviour
                         tile.color = p;
                         if (p == Color.blue)
                         {
-                            tile.traversible = false;
+                            tile.traversible = true;
                             tile.ghostStart = true;
                         }
                         else
@@ -223,7 +225,12 @@ public class Game : MonoBehaviour
         //{
         //    ghostPositions.Add(pill.pos);
         //}
-        ghostPositions.Add(ghostRef.transform.position);
+        //ghostPositions.Add(ghostRef.transform.position);
+        foreach(Ghost ghost in ghosts)
+        {
+            ghostPositions.Add(ghost.transform.position);
+        }
+
 
         GPUInstancing.Bots.botMaterial.SetVectorArray("ghostPositions", ghostPositions);
     }

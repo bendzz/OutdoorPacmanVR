@@ -83,10 +83,11 @@ CONTROLS
 	-pause game during this
 -Pause button
 
+sfx_belt_in	// bubbly noise
+sine	//hum
+train
 
-
-
-
+ghost scaling!
 
 
 

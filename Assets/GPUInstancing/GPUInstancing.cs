@@ -191,6 +191,12 @@ public class GPUInstancing : MonoBehaviour
                 botMaterial.SetInt("submeshI", submeshI);   // why +1..?
                 botMaterial.SetInt("botOffset", offset);
 
+#if UNITY_ANDROID
+                botMaterial.SetInt("AndroidInvertScreenUVs", 1);    // Only needed if you're doing screen space shader work on android
+#endif
+#if UNITY_EDITOR
+                botMaterial.SetInt("AndroidInvertScreenUVs", 0);    // However the editor is in windows, so don't invert UVs
+#endif
                 botMaterial.SetBuffer("bots", bots.buffer);
 
                 // HACKY FIX! If there's more than one mesh type, you have to swap out their polygon/instance counts in the Draw command,

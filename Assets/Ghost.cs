@@ -47,9 +47,9 @@ public class Ghost : MonoBehaviour
     // TODO
     // Ghost
     // state spawning (with spawn point target outside door)
-    // Ghosts can't go upward on green nav points!
 
-
+    [Tooltip("Need a ref to blinky to calculate Inky's movements")]
+    public static Ghost blinkyRef;
 
 
     /// <summary>
@@ -75,6 +75,9 @@ public class Ghost : MonoBehaviour
     void Start()
     {
         game = Game.instance;
+
+        if (ghost == Name.blinky)
+            blinkyRef = this;
 
         speedDefault = game.ghostSpeedDefault;
 
@@ -132,12 +135,14 @@ public class Ghost : MonoBehaviour
 
         audio = this.GetComponent<AudioSource>();
 
-        audio.pitch = (4-(float)ghost) / 2;
+        //audio.pitch = (4-(float)ghost) / 2;
+        audio.pitch = (4 - (float)ghost) / 4 + .0f;
+        //audio.pitch = ((float)ghost) / 2;
 
         if (ghost == Name.blinky)
         {
             material.SetColor("_Color", Color.red);
-            state = State.scatter;
+            //state = State.scatter;
         }
         else if (ghost == Name.pinky)
             material.SetColor("_Color", new Color(1,.5f,.7f,1));
@@ -198,7 +203,7 @@ public class Ghost : MonoBehaviour
                         if (tile.traversible)
                         {
                             traversible = true;
-                            if (tile.noGhostUp && d == 0)
+                            if (tile.noGhostUp && d == 0)   // ghosts can't turn upward at 4 intersections
                                 traversible = false;
                         }
                         if (state == State.unspawned && wanderUnspawned)
@@ -228,6 +233,43 @@ public class Ghost : MonoBehaviour
                         Vector3 target = Vector3.zero;
                         if (state == State.spawning)
                             target = game.spawnTarget.position;
+
+                        bool clydeScatter = false;
+                        if (state == State.chase)
+                        {
+                            // https://www.gamedeveloper.com/design/the-pac-man-dossier
+                            Vector3 ppos = game.packman.transform.position;
+                            if (ghost == Name.blinky)
+                                target = Game.navToWorld(game.packmanPos);  // completely authentic
+                            if (ghost == Name.pinky)
+                                target = ppos + (game.packmanFacingTarget.position - ppos) * 4; // mostly authentic; doesn't round to nearest tile, and the VR player can more easily change looking direction than original packman could
+                            if (ghost == Name.inky)
+                            {
+                                // Find the spot 2 tiles ahead of packman. Get a vector from blinky to that. extend it 2x further. That's the target.
+                                Vector3 ahead = ppos + (game.packmanFacingTarget.position - ppos) * 2;
+                                target = ahead + (ahead - Ghost.blinkyRef.transform.position);
+                            }
+                            if (ghost == Name.clyde)
+                            {
+                                if (Vector3.Distance(transform.position, ppos) > (game.pixelSize * 8) * 8)
+                                    target = Game.navToWorld(game.packmanPos);  // chase
+                                else
+                                {
+                                    clydeScatter = true;// Scatter (back to his corner)
+                                }
+                            }
+                        }
+                        if (state == State.scatter || clydeScatter)
+                        {
+                            if (ghost == Name.blinky)
+                                target = Game.navToWorld(new Vector2Int(25, 35));
+                            if (ghost == Name.pinky)
+                                target = Game.navToWorld(new Vector2Int(2, 35));
+                            if (ghost == Name.inky)
+                                target = Game.navToWorld(new Vector2Int(27, 0));
+                            if (ghost == Name.clyde)
+                                target = Game.navToWorld(new Vector2Int(0, 0));
+                        }
 
 
                         if (target != Vector3.zero)
@@ -264,7 +306,7 @@ public class Ghost : MonoBehaviour
             if (direction != Direction.up && direction != Direction.down)
                 direction = Direction.up;
 
-            float maxWander = game.cellWidth * 8;
+            float maxWander = game.pixelSize * 8;
             if (transform.position.z < startPosition.z - maxWander)
                 direction = Direction.up;
             else if (transform.position.z > startPosition.z + maxWander)

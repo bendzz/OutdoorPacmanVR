@@ -22,7 +22,16 @@ public class Game : MonoBehaviour
     public GameObject dot;
     public GameObject PowerPill;
     //public GameObject ghostRef;
-    public float cellWidth = .1f;
+    public float pixelSize = .1f;
+
+    public GameObject packman;
+    [Tooltip("an empty 1 meter in front of packman so ghosts can run in front of where he's facing.")]
+    public Transform packmanFacingTarget;
+    public Vector2Int packmanPos;
+    [Tooltip("Will be spawned and play a short segment of its audiosource every time a dot is eaten")]
+    public AudioSource waka1Player;
+    public AudioSource waka2Player;
+    bool waka2;
 
     [Tooltip("The VR player's head. This movement controls pacman etc")]
     public Camera cam;
@@ -46,6 +55,7 @@ public class Game : MonoBehaviour
     List<GPUInstancing.Bots.bot> dots;
     List<GPUInstancing.Bots.bot> pills;
 
+
     public struct navTile
     {
         public Color color;
@@ -55,6 +65,18 @@ public class Game : MonoBehaviour
         public bool ghostStart;
         public bool noGhostUp;
         public bool turn;
+        /// <summary>
+        /// Reference to the dot or pill on this tile (points to the "bots" GPU instancing array/buffer)
+        /// </summary>
+        public int dotRef;
+        /// <summary>
+        /// If there's a dot or pill here, this tells what type
+        /// </summary>
+        public bool isDot;
+        /// <summary>
+        /// If the dot or pill in "dotRef" is still "alive" or eaten
+        /// </summary>
+        public bool hasItem;
     }
 
     /// <summary>
@@ -106,7 +128,7 @@ public class Game : MonoBehaviour
                     if (p.b > .5 && p.r < .5)
                     {
                         GPUInstancing.Bots.bot item = new GPUInstancing.Bots.bot();
-                        item.pos = new Vector3(x * cellWidth, 1, y * cellWidth);
+                        item.pos = new Vector3(x * pixelSize, 1, y * pixelSize);
                         walls.Add(item);
 
 
@@ -118,15 +140,16 @@ public class Game : MonoBehaviour
                         if (pxCount < 5)
                         {
                             GPUInstancing.Bots.bot item = new GPUInstancing.Bots.bot();
-                            item.pos = new Vector3(x * cellWidth, 1, y * cellWidth);
-                            item.pos += new Vector3(cellWidth, 0, cellWidth);
+                            item.pos = new Vector3(x * pixelSize, 1, y * pixelSize);
+                            item.pos += new Vector3(pixelSize, 0, pixelSize);
                             dots.Add(item);
+                            //navs[x / 8, y / 8].dot = item; 
                         }
                         else
                         {
                             GPUInstancing.Bots.bot item = new GPUInstancing.Bots.bot();
-                            item.pos = new Vector3(x * cellWidth, 1, y * cellWidth);
-                            item.pos += new Vector3(cellWidth * 4, 0, cellWidth * 2);
+                            item.pos = new Vector3(x * pixelSize, 1, y * pixelSize);
+                            item.pos += new Vector3(pixelSize * 4, 0, pixelSize * 2);
                             pills.Add(item);
                         }
                     }
@@ -137,7 +160,8 @@ public class Game : MonoBehaviour
                     if (p != Color.black)
                     {
                         int pxCount = clearAllTouchingPixels(x, y, pixelsNav, dims);
-                        navTile tile = new navTile();
+                        //navTile tile = new navTile();
+                        navTile tile = navs[(x + 0) / 8, (y + 0) / 8];
                         tile.color = p;
                         if (p == Color.blue)
                         {
@@ -181,6 +205,25 @@ public class Game : MonoBehaviour
         //GPUInstancing.Bots.bots = new CSBuffer<GPUInstancing.Bots.bot>("bots");
         //GPUInstancing.Bots.bots.list = walls;
         GPUInstancing.Bots.bots.fillBuffer();
+
+
+        // Add the dots and pills to their tiles
+        for (int i = 0; i < GPUInstancing.Bots.bots.list.Count; i++)
+        {
+            GPUInstancing.Bots.bot bot = GPUInstancing.Bots.bots.list[i];
+            if (i > walls.Count)
+            {
+                Vector2Int pos = Game.worldToNav(bot.pos);
+                navTile tile = Game.nav(pos);
+                tile.hasItem = true;
+                tile.isDot = true;
+                if (i > walls.Count + dots.Count)
+                    tile.isDot = false;
+                tile.dotRef = i;
+                //print("item found at " + Game.worldToNav(bot.pos) + ", isDot " + tile.isDot + " ref " + i);
+                navs[pos.x, pos.y] = tile;
+            }
+        }
     }
 
 
@@ -216,7 +259,6 @@ public class Game : MonoBehaviour
 
             }
         }
-
         return pixelCount;
     }
 
@@ -224,8 +266,40 @@ public class Game : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (cam.transform.localPosition != Vector3.zero)    // to allow moving the character to test
+            OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));
 
-        OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));
+        packman.transform.position = new Vector3(cam.transform.position.x, 0, cam.transform.position.z);
+        packman.transform.rotation = Quaternion.Euler(new Vector3(0, cam.transform.rotation.eulerAngles.y, 0));
+        packmanPos = Game.worldToNav(packman.transform.position);
+
+        navTile pacTile = Game.nav(packmanPos);
+        if (pacTile.hasItem)
+        {
+            pacTile.hasItem = false;
+            //print("nommed " + packmanPos + pacTile.isDot);
+            GPUInstancing.Bots.bot bot = GPUInstancing.Bots.bots.list[pacTile.dotRef];
+
+            AudioSource player = waka1Player;
+            if (waka2)
+            {
+                player = waka2Player;
+                waka2 = false;
+            } else
+            {
+                waka2 = true;
+            }
+
+            player.transform.position = bot.pos;
+            IEnumerator coroutine = PlayPauseCoroutine(player, 0, 3);
+            StartCoroutine(coroutine);
+
+            bot.pos += new Vector3(0, 3, 0);
+
+            GPUInstancing.Bots.bots.list[pacTile.dotRef] = bot;
+            GPUInstancing.Bots.bots.fillBuffer();
+            navs[packmanPos.x, packmanPos.y] = pacTile;
+        }
 
 
         List<Vector4> ghostPositions = new List<Vector4>();
@@ -242,7 +316,17 @@ public class Game : MonoBehaviour
 
     }
 
-
+    /// <summary>
+    /// plays a sound for the set time without holding up the main game thread
+    /// </summary>
+    IEnumerator PlayPauseCoroutine(AudioSource source, float startTime, float playTime)
+    {
+        // https://forum.unity.com/threads/play-audio-for-x-seconds-and-pause-for-x-seconds.456176/
+        source.time = startTime;
+        source.Play();
+        yield return new WaitForSeconds(playTime);
+        //source.Stop(); // or source.Stop()
+    }
 
 
     // Nav helper functions
@@ -253,22 +337,22 @@ public class Game : MonoBehaviour
     public static Vector3 navToWorld(int x, int y)
     {
         //return new Vector3(x * Game.instance.cellWidth * 8, 1, y * Game.instance.cellWidth * 8);
-        return new Vector3((x + .5f) * Game.instance.cellWidth * 8, 1, (y + .5f) * Game.instance.cellWidth * 8);
+        return new Vector3((x + .5f) * Game.instance.pixelSize * 8, 1, (y + .5f) * Game.instance.pixelSize * 8);
     }
     /// <summary>
     /// The number will change as the position crossed over the edges between tiles
     /// </summary>
     public static Vector2Int worldToNav(Vector3 pos)
     {
-        return new Vector2Int((int)(pos.x / (Game.instance.cellWidth * 8)), (int)(pos.z / (Game.instance.cellWidth * 8)));
+        return new Vector2Int((int)(pos.x / (Game.instance.pixelSize * 8)), (int)(pos.z / (Game.instance.pixelSize * 8)));
     }
     /// <summary>
     /// The number will change as it crosses over the CENTER of tiles; grid is offset half a tile down/left
     /// </summary>
     public static Vector2Int worldToNavCenters(Vector3 pos)
     {
-        pos -= new Vector3(Game.instance.cellWidth * 4, 0, Game.instance.cellWidth * 4);
-        return new Vector2Int((int)((pos.x) / (Game.instance.cellWidth * 8)), (int)(pos.z / (Game.instance.cellWidth * 8)));
+        pos -= new Vector3(Game.instance.pixelSize * 4, 0, Game.instance.pixelSize * 4);
+        return new Vector2Int((int)((pos.x) / (Game.instance.pixelSize * 8)), (int)(pos.z / (Game.instance.pixelSize * 8)));
     }
     public static navTile nav(Vector2Int pos)
     {

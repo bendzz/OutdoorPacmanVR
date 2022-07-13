@@ -43,6 +43,8 @@ Shader "Custom/bots"
         int instanceCount;
         int botOffset;
 
+        int AndroidInvertScreenUVs;
+
         float4 ghostPositions[4];
 
         float3 mapScale;
@@ -142,32 +144,62 @@ Shader "Custom/bots"
                 //color = float4(0.129, 0.129, 1, 1);
                 //color = float4(0.129, 0.129, 1, 1) * .5 + .1;
                 color = float4(0, 0, 1, 1);
+                //color = float4(0, 0, .7, 1);
             else
-                color = float4(1, 0.725, 0.686, 1);
+                //color = float4(1, 0.725, 0.686, 1);
+                color = float4(1, 0.6, 0.1, 1);
+                //color = float4(1, 0.1, 0.9, 1);
             //color *= 1.2;
+            color *= .5;
 
-            //color.a = saturate(vecs[0].y + .4);
-            color.a = saturate(vecs[0].y + 8);
+
 
             //if ((id) % 10 != 0) return;  // testing 
 
 
+             // pacman lights
+            float4 gcol = float4(1, 0, 0, 1);
+            float4 lightPos[4];
+            //for (int g = 0; g < 4; g++) {
+            for (int g = 3; g >= 0; g--) {
+                lightPos[g] = ghostPositions[g];    // reflection positions
+
+                // maze color tinting
+                if (g == 0)
+                    gcol = float4(1, 0, 0, 1);
+                if (g == 1)
+                    gcol = float4(1, .4, .7, 1);
+                if (g == 2)
+                    gcol = float4(0, 1, 1, 1);
+                if (g == 3)
+                    gcol = float4(1, .7, 0, 1);
+                //gcol -= .5;
+                //gcol *= 2;
+
+                float radius = 20;
+                float strength = saturate((radius - length(vecs[0] - ghostPositions[g])) / radius);
+                //strength = saturate((strength - (vecs[0].y - g*.5)) * .5);
+                //color = lerp(color, gcol, pow(strength, 3) * .5);
+                color = lerp(color, saturate(gcol - (1 - strength)), pow(strength, 3) * 1);
+                //color = lerp(color, float4(0, 0, 0, 1), saturate((strength - .86) / .09));
+                color = lerp(color, float4(-1, -1, -1, 1), saturate((strength - .89) / .09));
+            }
+
             // Pacman game specific warping effect
             for (v = 0; v < 3; v++) {
                 for (int g = 0; g < 4; g++) {
-                    float3 offset = lerp(bo.pos, vecs[v], .7) - ghostPositions[g];    // makes it half pushing objects half warping them
-                    float range = 4;
+                    //float3 spot = ghostPositions[g] + float3(0, .5, 0);
+                    float3 spot = ghostPositions[g] + float3(.3, 0, .3);
+                    float3 offset = lerp(bo.pos, vecs[v], .8) - spot;    // makes it half pushing objects half warping them
+                    float range = 6;
                     float power = saturate((range - length(offset)) / range);
                     power = pow(power, 2) * 1;
-                    vecs[v] = lerp(vecs[v], bo.pos, power * .7);    // shrink the affected objects slightly
-                    vecs[v] += normalize(offset) * power;
+                    //power = clamp(power, 0, .5);
+                    //vecs[v] = lerp(vecs[v], bo.pos, power * .7);    // shrink the affected objects slightly
+                    vecs[v] += normalize(offset) * float3(1,1.5,1) * power;
                 }
             }
-            // pacman lights
-            float4 lightPos[4];
-            for (int g = 0; g < 4; g++) {
-                lightPos[g] = ghostPositions[g];
-            }
+
 
 
             // map scaling
@@ -177,6 +209,10 @@ Shader "Custom/bots"
                 vecs[v] = vecs[v] * mapScale;
                 vecs[v] += mapCenter;
             }
+            
+            //color.a = saturate(vecs[0].y + .4);
+            color.a = saturate(vecs[0].y + 7);
+
 
             //float3 normal = getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart], meshVertices[meshTriangles[tri + 1] + sub.verticesStart], meshVertices[meshTriangles[tri + 2] + sub.verticesStart]);
             //float3 normal = -getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 1] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 2] + sub.verticesStart].xzy);
@@ -186,15 +222,18 @@ Shader "Custom/bots"
             float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
             //light = light * .8 + .2;
             light = light * .9 + .04;
-            //for (v = 0; v < 3; v++) {
+            color.xyz = color.xyz * light;
+
+
             for (v = 2; v >= 0; v--) { 
                 geomOutput gout = (geomOutput)0;
                 gout.pos = float4(vecs[v], 1);
                 gout.pos = mul(UNITY_MATRIX_VP, gout.pos);
                 gout.info.xyz = bo.info;
 
-                gout.color.xyz = color.xyz * light;
-                gout.color.a = color.a;
+                //gout.color.xyz = color.xyz;
+                gout.color = color;
+                //gout.color.a = color.a;
 
                 gout.normals = normal;
 
@@ -235,7 +274,8 @@ Shader "Custom/bots"
 
 
         float2 screenUV = (i.pos.xy / _ScreenParams.xy);
-        //screenUV = float2(screenUV.x, 1 - screenUV.y);    // NOTE! Needs to be enabled on PC but not on Quest 2!
+        if (AndroidInvertScreenUVs == 0)
+            screenUV = float2(screenUV.x, 1 - screenUV.y);    // NOTE! Needs to be enabled on PC but not on Quest 2!
 
         float4 light = i.lightPos0;
 

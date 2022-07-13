@@ -107,10 +107,10 @@ Shader "Custom/bots"
             float3 normals : NORMAL0;
 
             //pacman
-            //float4 lightPos0 : COLOR1;
             float4 lightPos0 : float4; 
-            //float4 lightPos0 : SV_POSITION1;
-            float4 pixelPos : float41;    // Hacky hack to be able to make sense of the lightPos coordinates given
+            float4 lightPos1 : float41; 
+            float4 lightPos2 : float42; 
+            float4 lightPos3 : float43; 
         };
 
         [maxvertexcount(4)]
@@ -140,12 +140,14 @@ Shader "Custom/bots"
             // pacman coloring
             if (submeshI == 0)
                 //color = float4(0.129, 0.129, 1, 1);
-                color = float4(0.129, 0.129, 1, 1) * .5 + .1;
+                //color = float4(0.129, 0.129, 1, 1) * .5 + .1;
+                color = float4(0, 0, 1, 1);
             else
                 color = float4(1, 0.725, 0.686, 1);
-            color *= 1.2;
+            //color *= 1.2;
 
-            color.a = saturate(vecs[0].y + .4);
+            //color.a = saturate(vecs[0].y + .4);
+            color.a = saturate(vecs[0].y + 8);
 
             //if ((id) % 10 != 0) return;  // testing 
 
@@ -182,7 +184,8 @@ Shader "Custom/bots"
 
 
             float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
-            light = light * .8 + .2;
+            //light = light * .8 + .2;
+            light = light * .9 + .04;
             //for (v = 0; v < 3; v++) {
             for (v = 2; v >= 0; v--) { 
                 geomOutput gout = (geomOutput)0;
@@ -196,21 +199,12 @@ Shader "Custom/bots"
                 gout.normals = normal;
 
                 // pacmanLights
-                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(lightPos[0].xyz,1));
-                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(ghostPositions[0].xyz,1));
-                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(10,10,10,1));
-                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(100,100,100,1));
-                gout.lightPos0 = gout.pos;
-                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(vecs[v], 1));
-                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(ghostPositions[0].xyz * 100, 1));
-                gout.lightPos0 = ghostPositions[0].xyzw * 20;
-                //gout.lightPos0 = float4(100,100,100,100);
-                gout.lightPos0 = UnityObjectToClipPos(float4(ghostPositions[0].xyz, 1)) * 100;
+
                 gout.lightPos0 = UnityObjectToClipPos(ghostPositions[0].xyz);
+                gout.lightPos1 = UnityObjectToClipPos(ghostPositions[1].xyz);
+                gout.lightPos2 = UnityObjectToClipPos(ghostPositions[2].xyz);
+                gout.lightPos3 = UnityObjectToClipPos(ghostPositions[3].xyz);
                 
-                
-                gout.pixelPos = UnityObjectToClipPos(vecs[v]);
-                //gout.pixelPos = UnityObjectToClipPos(float3(vecs[v].x, ghostPositions[0].y, ));
 
                 triStream.Append(gout);
             }
@@ -237,47 +231,37 @@ Shader "Custom/bots"
         //float2 blob = float2(.5, .4);
         float2 blob = i.lightPos0.xy;
 
-        float radius = .1;
-        //float radius = 100;
-        //col.r += length(blob - (i.pos.xy / _ScreenParams.xy));
-        //col += saturate(radius - length(blob - (i.pos.xy / _ScreenParams.xy))) / radius;
-        //col += saturate(radius - length(blob - i.pos.xy)) / radius;
-        //col = length(blob - i.pos.xy) / 1000;
-        //col = length(i.lightPos0.xy - (i.pos.xy / _ScreenParams.xy)) / 1000;
-        //col = length(i.lightPos0.xy - (i.pos.xy / _ScreenParams.xy)) / 10;
+        float radius = .05;
 
-        col = saturate(radius - length(blob - (i.pos.xy / _ScreenParams.xy))) / radius;
-        col = saturate(radius - length(blob - (i.pos.xy /1))) / radius;
-        //col.xy = blob;
-        col.xy = (i.pos.xy - i.lightPos0.xy * 1000) / 1000 ;
-        col.xy = (i.pos.xy - i.lightPos0.xy * _ScreenParams.xy) / 1000 ;
-        col.xy = (i.pos.xy - i.lightPos0.xy * _ScreenParams.xy * .1) / _ScreenParams.xy;
-        col.xy = (i.lightPos0.xy * _ScreenParams.xy * .1 - i.pos.xy) / _ScreenParams.xy;
-        
-        col.xy = (i.lightPos0.xy - i.pixelPos.xy) / 1; 
-
-        col.xy = i.lightPos0.xy / (_ScreenParams.xy * .05);
-        col.xy = (i.lightPos0.xy / i.lightPos0.w) / (_ScreenParams.xy * .01);
-        col.xy = (i.lightPos0.xy / i.lightPos0.w);// / (_ScreenParams.xy * .01);
-        col.xy = 1 + (i.lightPos0.xy / i.lightPos0.w);// / (_ScreenParams.xy * .01);
-        col.xy = .5 + (i.lightPos0.xy / i.lightPos0.w) / 2;// / (_ScreenParams.xy * .01);
-        col.xy = (.5 + (i.lightPos0.xy / i.lightPos0.w) / 2) - (i.pos.xy / _ScreenParams.xy);
 
         float2 screenUV = (i.pos.xy / _ScreenParams.xy);
-        screenUV = float2(screenUV.x, 1 - screenUV.y);
-        col.xy = (.5 + (i.lightPos0.xy / i.lightPos0.w) / 2) - screenUV;
+        //screenUV = float2(screenUV.x, 1 - screenUV.y);    // NOTE! Needs to be enabled on PC but not on Quest 2!
 
-        //col.xy = i.lightPos0.w;// / (_ScreenParams.xy * .05);
-        //col.xy = (i.pos.xy/ _ScreenParams.xy);
+        float4 light = i.lightPos0;
 
-        //col.rb = i.pos.xy / _ScreenParams.xy;
+        float4 result = (float4)0;
+        float4 gcol = float4(1, 0, 0, 1);
+        for (int g = 0; g < 4; g++) {
+            if (g == 1) {
+                light = i.lightPos1;
+                gcol = float4(1, .4, .7, 1);
+            }
+            if (g == 2) 
+            {
+                light = i.lightPos2;
+                gcol = float4(0, 1, 1, 1);
+            }
+            if (g == 3) 
+            {
+                light = i.lightPos3;
+                gcol = float4(.7, .4, 0, 1);
+            }
+            float2 source = (.5 + (light.xy / light.w) / 2);
+            result += gcol * saturate((radius - length(source - screenUV)) / radius);
+        }
+        col += result;
 
-        //col.rb = _ScreenParams.xy / 2000;
 
-        //col.xyz = reflected.z;
-        //col.xyz = ns;
-
-        //col.xy = i.lightPos0.xy;
 
             return col;
         }

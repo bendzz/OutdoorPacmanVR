@@ -73,6 +73,13 @@ public class Ghost : MonoBehaviour
 
     Vector3 startScale;
 
+    /// <summary>
+    /// What the ghost is currently aiming at
+    /// </summary>
+    Vector3 target;
+
+    public List<Transform> eyes;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -153,6 +160,7 @@ public class Ghost : MonoBehaviour
 
         // TODO: Check if ghost is outside bounds, if it is put it back at spawn or the nearest traversible tile
 
+
         Game.navTile currentTile = Game.nav(pos);
 
         if (state == State.unspawned)
@@ -225,7 +233,8 @@ public class Ghost : MonoBehaviour
                         if (validDirections.Count > 1)
                         {
                             // Change direction?
-                            Vector3 target = Vector3.zero;
+                            //Vector3 target = Vector3.zero;
+                            target = Vector3.zero;
                             if (state == State.spawning)
                                 target = game.spawnTarget.position;
 
@@ -277,7 +286,15 @@ public class Ghost : MonoBehaviour
                                 }
                             }
 
+                            if (game.pausedBlinkyDemo.paused)
+                            {
+                                if (ghost == Name.blinky)
+                                {
+                                    target = game.pausedBlinkyDemo.oBLinkyPos;
+                                }
+                            }
 
+                            // execute
                             if (target != Vector3.zero)
                             {
                                 // choose the direction tile nearest to the target point
@@ -319,6 +336,20 @@ public class Ghost : MonoBehaviour
                 direction = Direction.down;
         }
 
+        // ghost rotations
+        transform.rotation = Quaternion.Euler(0, (float)direction * 90, 0);
+
+        foreach(Transform eye in eyes)
+        {
+            if (target == Vector3.zero)
+            {
+                break;
+                eye.rotation = transform.rotation;
+            }
+            eye.LookAt(target);
+            eye.rotation = Quaternion.Slerp(transform.rotation, eye.rotation, .5f);
+        }
+
 
         // move ghost
         {
@@ -328,7 +359,15 @@ public class Ghost : MonoBehaviour
             if (state == State.frightened)
                 speedDefault = game.ghostSpeedDefault * .65f;
             if (!game.paused)
+            {
                 transform.position += vec23(directions[(int)direction]) * speedDefault * Time.deltaTime;
+            } else if (game.pausedBlinkyDemo.paused)
+            {
+                if (ghost == Name.blinky)
+                {
+                    transform.position += vec23(directions[(int)direction]) * speedDefault * Time.deltaTime;
+                }
+            }
         }
 
 
@@ -357,7 +396,7 @@ public class Ghost : MonoBehaviour
                 material.SetColor("_Color", new Color(0, 0, .5f, 1));
             } else
             {
-                material.SetColor("_Color", new Color(.1f, 0, 0f, 1));
+                material.SetColor("_Color", new Color(.1f, 0, 0f, .3f));
             }
             transform.localScale = startScale * .6f;
         }

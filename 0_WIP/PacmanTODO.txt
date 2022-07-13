@@ -93,8 +93,14 @@ TODO
 -siren background
 
 
--set chase after scatter
+-set ghosts to use the right state using game.defaultState thing after spawning etc
+
+-spawn dot timers
+-flash ghosts before they become un-frightened
 
 
 
 
+
+
+		

@@ -67,6 +67,9 @@ public class Game : MonoBehaviour
     public int timerStep;
     public List<float> timerSequence;
 
+    [Tooltip("if true, the OVR playspace is no longer shifted to make the player move twice as fast.")]
+    public bool disableEnhancedPlayerMovement;
+
 
     public struct navTile
     {
@@ -98,6 +101,21 @@ public class Game : MonoBehaviour
 
     Vector3 rigStartPos;
 
+
+    /// <summary>
+    /// For adjusting settings like ghost speed while paused (while blinky whips around demoing the speed)
+    /// </summary>
+    public struct PausedBlinkyDemo
+    {
+        public bool paused;
+        public Vector3 oOVRScale;
+        public Vector3 oBLinkyPos;
+        public Ghost.State oState;
+        public Ghost.Direction oDirection;
+    }
+    public PausedBlinkyDemo pausedBlinkyDemo;
+    //Vector3 pausedOriginalOVRSettings;
+    //Vector3 pausedBlinkyOriginalPosition;
 
     // Start is called before the first frame update
     void Start()
@@ -375,7 +393,7 @@ public class Game : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (cam.transform.localPosition != Vector3.zero)    // to allow moving the character to test
+        if (cam.transform.localPosition != Vector3.zero && !disableEnhancedPlayerMovement)    // to allow moving the character to test
             OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));
 
         //packman.transform.position = new Vector3(cam.transform.position.x, 0, cam.transform.position.z);
@@ -486,22 +504,64 @@ public class Game : MonoBehaviour
         }
 
         // Settings
-        if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > .5f)
-        {
-            // main hand trigger + joystick up/down scales the world (ie scales your playspace object)
-            //OVRCameraRig.localScale += Vector3.one * Time.deltaTime * OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y * .5f;
-            float stick = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y;
-            if (stick > 0)
-                OVRCameraRig.localScale = OVRCameraRig.localScale * (1 + stick * Time.deltaTime);
-            else if (stick < 0)
-                OVRCameraRig.localScale = OVRCameraRig.localScale * (1 + (stick * Time.deltaTime * .5f));
-
-            // TODO adjust ghost speed!
-        }
+        paused = false;
         if (OVRInput.Get(OVRInput.Button.One))
-            paused = true;
+            disableEnhancedPlayerMovement = true;
         else
-            paused = false;
+            disableEnhancedPlayerMovement = false;
+        //if (OVRInput.Get(OVRInput.Button.One))
+        //    paused = true;
+        //else
+        //    paused = false;
+        
+        // Adjust ghost speed
+        if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > .5f)
+        {
+            if (!pausedBlinkyDemo.paused)
+            {
+                // record unpaused state for restoration
+                pausedBlinkyDemo.paused = true;
+                pausedBlinkyDemo.oBLinkyPos = Ghost.blinkyRef.transform.position;
+                pausedBlinkyDemo.oDirection = Ghost.blinkyRef.direction;
+                pausedBlinkyDemo.oState = Ghost.blinkyRef.state;
+                pausedBlinkyDemo.oOVRScale = OVRCameraRig.localScale;
+                Ghost.blinkyRef.state = Ghost.State.chase;  // only to make sure it's not dead
+            }
+            paused = true;
+            OVRCameraRig.localScale = Vector3.one * 10;
+
+            //controls
+            float stick = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).y;
+            ghostSpeedDefault += stick * 2 * Time.deltaTime;
+            if (ghostSpeedDefault > 11)
+                ghostSpeedDefault = 11;
+            if (ghostSpeedDefault < 1)
+                ghostSpeedDefault = 1;
+        } else
+        {
+            if (pausedBlinkyDemo.paused)
+            {
+                pausedBlinkyDemo.paused = false;
+                Ghost.blinkyRef.transform.position = pausedBlinkyDemo.oBLinkyPos;
+                Ghost.blinkyRef.direction = pausedBlinkyDemo.oDirection;
+                Ghost.blinkyRef.state = pausedBlinkyDemo.oState;
+                OVRCameraRig.localScale = pausedBlinkyDemo.oOVRScale;
+            }
+
+            // scale world
+            if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > .5f)
+            {
+                // main hand trigger + joystick up/down scales the world (ie scales your playspace object)
+                float stick = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y;
+                if (stick > 0)
+                    OVRCameraRig.localScale = OVRCameraRig.localScale * (1 + stick * Time.deltaTime);
+                else if (stick < 0)
+                    OVRCameraRig.localScale = OVRCameraRig.localScale * (1 + (stick * Time.deltaTime * .5f));
+
+                paused = true;
+            }
+        }
+
 
 
 
@@ -526,18 +586,6 @@ public class Game : MonoBehaviour
 
     }
 
-    //public void FrightenGhosts(float time)
-    //{
-    //    frightened = time;
-    //    foreach(Ghost ghost in ghosts)
-    //    {
-    //        ghost.state = Ghost.State.frightened;
-    //        int oppositeDirection = (int)ghost.direction - 2;
-            
-    //        if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
-    //        ghost.direction = (Ghost.Direction)oppositeDirection;
-    //    }
-    //}
 
     /// <summary>
     /// plays a sound for the set time without holding up the main game thread

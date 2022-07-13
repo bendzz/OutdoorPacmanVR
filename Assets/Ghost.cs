@@ -347,7 +347,7 @@ public class Ghost : MonoBehaviour
                 eye.rotation = transform.rotation;
             }
             eye.LookAt(target);
-            eye.rotation = Quaternion.Slerp(transform.rotation, eye.rotation, .5f);
+            eye.rotation = Quaternion.Slerp(transform.rotation, eye.rotation, .75f);
         }
 
 
@@ -371,6 +371,7 @@ public class Ghost : MonoBehaviour
         }
 
 
+        bool scaredColored = false;
         if (state != State.frightened && state != State.dead)
         {
             // make em big n scary when they're close
@@ -379,7 +380,25 @@ public class Ghost : MonoBehaviour
             float bigger = Mathf.Clamp01((growRadius - pacDis) / growRadius);
             bigger = 1 + bigger * .7f;
             transform.localScale = startScale * bigger;
+        } else
+        {
+            if (state == State.frightened)
+            {
+                if (game.frightened > 3)
+                    scaredColored = true;
+                else
+                {
+                    if ((game.frightened * 2) % 2 < 1)
+                        scaredColored = true;
+                }
+            }
+            transform.localScale = startScale * .6f;
+        }
 
+        if (scaredColored)
+            material.SetColor("_Color", new Color(0, 0, .5f, 1));
+        else
+        {
             // ghost colors
             if (ghost == Name.blinky)
                 material.SetColor("_Color", Color.red);
@@ -389,17 +408,10 @@ public class Ghost : MonoBehaviour
                 material.SetColor("_Color", new Color(0, 1, 1, 1));
             else if (ghost == Name.clyde)
                 material.SetColor("_Color", new Color(1, .5f, .1f, 1));
-        } else
-        {
-            if (state == State.frightened)
-            {
-                material.SetColor("_Color", new Color(0, 0, .5f, 1));
-            } else
-            {
-                material.SetColor("_Color", new Color(.1f, 0, 0f, .3f));
-            }
-            transform.localScale = startScale * .6f;
         }
+
+        if (state == State.dead)
+            material.SetColor("_Color", new Color(.1f, 0, 0f, .3f));
 
 
 

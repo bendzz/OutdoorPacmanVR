@@ -16,27 +16,15 @@ https://gameinternals.com/understanding-pac-man-ghost-behavior
 
 July 11 TODO
 			-teleporting
--spawning
-	-ghost house
-	-4 ghosts
-		-ghost names/colors
--AI
--Player + VR
-	-world movement scaling 
-	-ghost speed scaling option
 -splash screen and press to continue
-
-TODO
--Add a spawn point for the ghosts to run to when leaving the house
--Add a player 
 
 
 
 
 TODO LATER
--Ghost faces the 4 directions it's walking
-	-Its EYES face the target it's going toward (or straight ahead if no target)
+-Ghost models:
 	-They have hidden horrific mouths that open slowly as they get near, if they're facing the player's position.
+	-The eyes shrink and face warps too. (blend shape all of it)
 -When player respawning, it shrinks the map to be short/almost flat and tells you to walk back to the spawn point IRL.
 
 TODO ghost audio
@@ -87,19 +75,18 @@ sfx_belt_in	// bubbly noise
 sine	//hum
 train
 
+
+
 TODO
--power pills
 -IRL walls
--siren background
+-siren background, frightened ghost background
+sounds: Eating ghost, 
 
-
--set ghosts to use the right state using game.defaultState thing after spawning etc
 
 -spawn dot timers
--flash ghosts before they become un-frightened
 
-
-
+-2 Github embedded gifs: A ghost approaching life sized as you back away, and board game sized play
+	-social image https://github.com/bendzz/OutdoorPacmanVR/settings
 
 
 

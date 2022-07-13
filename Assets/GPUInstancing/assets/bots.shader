@@ -191,19 +191,22 @@ Shader "Custom/bots"
             // Pacman game specific warping effect
             for (v = 0; v < 3; v++) {
                 for (int g = 0; g < 4; g++) {
-                    //float3 spot = ghostPositions[g] + float3(0, .5, 0);
                     float3 spot = ghostPositions[g] + float3(.1, 0, .1);
                     float lerpStr = .8; 
                     if (submeshI > 0)
-                        lerpStr = .3;
+                        lerpStr = .2;
                     float3 offset = lerp(bo.pos, vecs[v], lerpStr) - spot;    // makes it half pushing objects half warping them
                     float range = 6;
                     float power = saturate((range - length(offset)) / range);
                     power = pow(power, 2) * 1;
+                    if (submeshI > 0)
+                        power *= power;
                     //power = clamp(power, 0, .5);
                     //vecs[v] = lerp(vecs[v], bo.pos, power * .7);    // shrink the affected objects slightly
-                    //vecs[v] += normalize(offset) * float3(1,1.5,1) * power;
-                    vecs[v] += normalize(offset) * float3(1,1.5,1) * .7 * power;
+                    float multiplier = .7;
+                    if (submeshI > 0)
+                        multiplier = 1.3;
+                    vecs[v] += normalize(offset) * float3(1,1.5,1) * multiplier * power;
                 }
             }
 

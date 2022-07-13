@@ -494,7 +494,7 @@ public class Game : MonoBehaviour
                     //FrightenGhosts(5);
                     //ghostsModeSwitch(Ghost.State.frightened);
                     ghostsModeSwitch(Ghost.State.frightened, true);
-                    frightened = 10;
+                    frightened = 15;
                 }
 
                 GPUInstancing.Bots.bots.list[pacTile.dotRef] = bot;

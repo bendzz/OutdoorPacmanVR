@@ -1,6 +1,6 @@
 README
 
-Life sized pacman VR! Run around on an open field dodging the ghosts in real life! Grow the map even larger for a real workout, or shrink it down to a board game to play in your living room.
+Life sized pacman VR! Run around on an open field dodging the ghosts in real life! Grow the map even larger for a real sprint, or shrink it down to a board game to play in your living room.
 
 CONTROLS
 
@@ -24,6 +24,6 @@ CONTROLS
 
 NOTES:
 
--Not entirely finished; it only has 1 level and you can't die; honor rules only. (Just crank the speeds up to simulate later leves). It's also missing some nuances of the original like cherries, a score and a win state.
+-Not entirely finished; it only has 1 level and you can't die; honor rules only. (Just crank the speeds up to simulate later levels). It's also missing some nuances of the original like cherries, a score and a win state.
 
 -Oculus Quests only; only tested on a Quest 2.

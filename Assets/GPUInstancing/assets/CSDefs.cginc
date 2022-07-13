@@ -15,6 +15,7 @@ struct bot
 	float3 scale;
 	
 	float3 info;
+	int alive;
 };
 
 struct Submesh

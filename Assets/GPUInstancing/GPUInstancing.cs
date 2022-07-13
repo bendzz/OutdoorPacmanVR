@@ -18,6 +18,7 @@ public class GPUInstancing : MonoBehaviour
             //public Quaternion rot;
             public Vector3 scale;
             public Vector3 info;
+            public int alive;
         }
 
         public struct Submesh

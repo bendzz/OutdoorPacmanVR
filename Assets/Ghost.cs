@@ -36,7 +36,7 @@ public class Ghost : MonoBehaviour
         spawning,
         chase,
         scatter,
-        panic,  // edible
+        frightened,  // edible
         dead    // return home
     }
 
@@ -143,18 +143,6 @@ public class Ghost : MonoBehaviour
         audio.pitch = (4 - (float)ghost) / 4 + .0f;
         //audio.pitch = ((float)ghost) / 2;
 
-        if (ghost == Name.blinky)
-        {
-            material.SetColor("_Color", Color.red);
-            //state = State.scatter;
-        }
-        else if (ghost == Name.pinky)
-            material.SetColor("_Color", new Color(1,.5f,.7f,1));
-        else if (ghost == Name.inky)
-            material.SetColor("_Color", new Color(0, 1, 1, 1));
-        else if (ghost == Name.clyde)
-            material.SetColor("_Color", new Color(1, .5f, .1f, 1));
-
     }
 
     // Update is called once per frame
@@ -219,7 +207,8 @@ public class Ghost : MonoBehaviour
                         {
                             if (tile.ghostStart)
                                 traversible = true;
-                        }
+                        } else if (state == State.dead)
+                            traversible = tile.ghostStart || tile.traversible;
                     } catch (System.Exception e) { }
                     if (traversible)
                         validDirections.Add((Direction)d);
@@ -244,15 +233,18 @@ public class Ghost : MonoBehaviour
                             if (state == State.chase)
                             {
                                 // https://www.gamedeveloper.com/design/the-pac-man-dossier
+                                //Vector3 ppos = game.packman.transform.position;
                                 Vector3 ppos = game.packman.transform.position;
                                 if (ghost == Name.blinky)
-                                    target = Game.navToWorld(game.packmanPos);  // completely authentic
+                                    //target = Game.navToWorld(game.packmanPos);  // completely authentic
+                                    target = ppos; // completely authentic
                                 if (ghost == Name.pinky)
-                                    target = ppos + (game.packmanFacingTarget.position - ppos) * 4; // mostly authentic; doesn't round to nearest tile, and the VR player can more easily change looking direction than original packman could
+                                    //target = ppos + Vector3.Normalize(game.packmanFacingTarget.position - ppos) * game.pixelSize * 8 * 4; // mostly authentic; doesn't round to nearest tile, and the VR player can more easily change looking direction than original packman could
+                                    target = ppos + Vector3.Normalize(game.packman.transform.forward) * game.pixelSize * 8 * 4; // mostly authentic; doesn't round to nearest tile, and the VR player can more easily change looking direction than original packman could
                                 if (ghost == Name.inky)
                                 {
                                     // Find the spot 2 tiles ahead of packman. Get a vector from blinky to that. extend it 2x further. That's the target.
-                                    Vector3 ahead = ppos + (game.packmanFacingTarget.position - ppos) * 2;
+                                    Vector3 ahead = ppos + Vector3.Normalize(game.packman.transform.forward) * game.pixelSize * 8 * 2;
                                     target = ahead + (ahead - Ghost.blinkyRef.transform.position);
                                 }
                                 if (ghost == Name.clyde)
@@ -275,6 +267,14 @@ public class Ghost : MonoBehaviour
                                     target = Game.navToWorld(new Vector2Int(27, 0));
                                 if (ghost == Name.clyde)
                                     target = Game.navToWorld(new Vector2Int(0, 0));
+                            }
+                            if (state == State.dead)
+                            {
+                                target = startPosition;
+                                if (Game.worldToNav(startPosition) == Game.worldToNav(transform.position))
+                                {
+                                    state = State.spawning; // TODO not quite accurate
+                                }
                             }
 
 
@@ -319,16 +319,49 @@ public class Ghost : MonoBehaviour
                 direction = Direction.down;
         }
 
-        speedDefault = game.ghostSpeedDefault;
-        transform.position += vec23(directions[(int)direction]) * speedDefault * Time.deltaTime;
+
+        // move ghost
+        {
+            speedDefault = game.ghostSpeedDefault;
+            if (state == State.dead)
+                speedDefault = game.ghostSpeedDefault * 2;
+            if (state == State.frightened)
+                speedDefault = game.ghostSpeedDefault * .65f;
+            if (!game.paused)
+                transform.position += vec23(directions[(int)direction]) * speedDefault * Time.deltaTime;
+        }
 
 
-        // make em big n scary when they're close
-        float pacDis = Vector3.Distance(game.packman.transform.position, transform.position);
-        float growRadius = 8f;
-        float bigger = Mathf.Clamp01((growRadius - pacDis) / growRadius);
-        bigger = 1 + bigger * 1;
-        transform.localScale = startScale * bigger;
+        if (state != State.frightened && state != State.dead)
+        {
+            // make em big n scary when they're close
+            float pacDis = Vector3.Distance(game.packman.transform.position, transform.position);
+            float growRadius = 8f;
+            float bigger = Mathf.Clamp01((growRadius - pacDis) / growRadius);
+            bigger = 1 + bigger * .7f;
+            transform.localScale = startScale * bigger;
+
+            // ghost colors
+            if (ghost == Name.blinky)
+                material.SetColor("_Color", Color.red);
+            else if (ghost == Name.pinky)
+                material.SetColor("_Color", new Color(1, .5f, .7f, 1));
+            else if (ghost == Name.inky)
+                material.SetColor("_Color", new Color(0, 1, 1, 1));
+            else if (ghost == Name.clyde)
+                material.SetColor("_Color", new Color(1, .5f, .1f, 1));
+        } else
+        {
+            if (state == State.frightened)
+            {
+                material.SetColor("_Color", new Color(0, 0, .5f, 1));
+            } else
+            {
+                material.SetColor("_Color", new Color(.1f, 0, 0f, 1));
+            }
+            transform.localScale = startScale * .6f;
+        }
+
 
 
         oldPos = pos;

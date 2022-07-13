@@ -184,6 +184,8 @@ Shader "Custom/bots"
                 //color = lerp(color, float4(0, 0, 0, 1), saturate((strength - .86) / .09));
                 if (submeshI == 0)
                     color = lerp(color, float4(-1, -1, -1, 1), saturate((strength - .89) / .15));
+                else
+                    color = lerp(color, float4(1, 1, 1, 1), saturate((strength - .8) / .2));
             }
 
             // Pacman game specific warping effect
@@ -200,7 +202,8 @@ Shader "Custom/bots"
                     power = pow(power, 2) * 1;
                     //power = clamp(power, 0, .5);
                     //vecs[v] = lerp(vecs[v], bo.pos, power * .7);    // shrink the affected objects slightly
-                    vecs[v] += normalize(offset) * float3(1,1.5,1) * power;
+                    //vecs[v] += normalize(offset) * float3(1,1.5,1) * power;
+                    vecs[v] += normalize(offset) * float3(1,1.5,1) * .7 * power;
                 }
             }
 
@@ -222,6 +225,8 @@ Shader "Custom/bots"
             //float3 normal = -getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 1] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 2] + sub.verticesStart].xzy);
             float3 normal = -getNormal(vecs[0], vecs[1], vecs[2]);
 
+            if (bo.alive == -1)
+                color = float4(.02, .02, .02, 0);
 
             float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
             //light = light * .8 + .2;

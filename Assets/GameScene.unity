@@ -188,6 +188,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f0873c8eb34b2049974f198f600e218, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  paused: 0
   map: {fileID: 2800000, guid: 4c9ca342df373b545914fb3068047a44, type: 3}
   mapNav: {fileID: 2800000, guid: 702268ba164188f4397acfd6d34b3bd2, type: 3}
   mapEmpty: {fileID: 1422916481}
@@ -197,7 +198,6 @@ MonoBehaviour:
   PowerPill: {fileID: 597816975}
   pixelSize: 0.1
   packman: {fileID: 350302609}
-  packmanFacingTarget: {fileID: 1581865811}
   packmanPos: {x: 0, y: 0}
   waka1Player: {fileID: 567604592}
   waka2Player: {fileID: 1854006873}
@@ -213,6 +213,7 @@ MonoBehaviour:
   - {fileID: 750598631}
   ghostSpeedDefault: 3
   level: 0
+  frightened: 0
 --- !u!4 &216010504
 Transform:
   m_ObjectHideFlags: 0
@@ -357,9 +358,9 @@ MonoBehaviour:
     m_NumColorKeys: 3
     m_NumAlphaKeys: 2
   colorMapEditorContrast: 0
-  colorMapEditorBrightness: -0.757
+  colorMapEditorBrightness: -0.622
   colorMapEditorPosterize: 0
-  textureOpacity_: 0
+  textureOpacity_: 0.162
   edgeRenderingEnabled_: 1
   edgeColor_: {r: 0, g: 0.32854414, b: 1, a: 1}
   colorMapType: 1

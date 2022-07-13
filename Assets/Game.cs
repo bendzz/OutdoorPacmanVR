@@ -12,6 +12,9 @@ public class Game : MonoBehaviour
     /// </summary>
     public static Game instance;
 
+    [Tooltip("Player can pause the game")]
+    public bool paused;
+
     public Texture2D map;
     public Texture2D mapNav;
     [Tooltip("An empty to parent any dynamically spawned entities to, to keep the hierarchy clean")]
@@ -25,8 +28,8 @@ public class Game : MonoBehaviour
     public float pixelSize = .1f;
 
     public GameObject packman;
-    [Tooltip("an empty 1 meter in front of packman so ghosts can run in front of where he's facing.")]
-    public Transform packmanFacingTarget;
+    //[Tooltip("an empty 1 meter in front of packman so ghosts can run in front of where he's facing.")]
+    //public Transform packmanFacingTarget;
     public Vector2Int packmanPos;
     [Tooltip("Will be spawned and play a short segment of its audiosource every time a dot is eaten")]
     public AudioSource waka1Player;
@@ -54,6 +57,15 @@ public class Game : MonoBehaviour
     List<GPUInstancing.Bots.bot> walls;
     List<GPUInstancing.Bots.bot> dots;
     List<GPUInstancing.Bots.bot> pills;
+
+    /// <summary>
+    /// Counter in seconds for how long the ghosts can remain frightened
+    /// </summary>
+    public float frightened;
+
+    public float timer;
+    public int timerStep;
+    public List<float> timerSequence;
 
 
     public struct navTile
@@ -98,6 +110,12 @@ public class Game : MonoBehaviour
         //fixedFoveatedRenderingLevel = FixedFoveatedRenderingLevel.HighTop; // it's the maximum foveation level
 
         rigStartPos = OVRCameraRig.position;
+
+        // https://www.gamedeveloper.com/design/the-pac-man-dossier
+        // level 1 sequence
+        // scatter, chase, scatter, chase, scatter, chase, scatter, chase forever
+        timerSequence = new List<float> { 7, 20, 7, 20, 5, 20 };
+
 
         Color[] pixels = map.GetPixels();
         Color[] pixelsNav = mapNav.GetPixels();
@@ -211,13 +229,13 @@ public class Game : MonoBehaviour
         for (int i = 0; i < GPUInstancing.Bots.bots.list.Count; i++)
         {
             GPUInstancing.Bots.bot bot = GPUInstancing.Bots.bots.list[i];
-            if (i > walls.Count)
+            if (i >= walls.Count)
             {
                 Vector2Int pos = Game.worldToNav(bot.pos);
                 navTile tile = Game.nav(pos);
                 tile.hasItem = true;
                 tile.isDot = true;
-                if (i > walls.Count + dots.Count)
+                if (i >= walls.Count + dots.Count)
                     tile.isDot = false;
                 tile.dotRef = i;
                 //print("item found at " + Game.worldToNav(bot.pos) + ", isDot " + tile.isDot + " ref " + i);
@@ -263,49 +281,241 @@ public class Game : MonoBehaviour
     }
 
 
+    public Vector2Int getNearestTraversibleTile(Vector3 targetPos)
+    {
+        Vector2Int result = new Vector2Int(-1, -1);
+        float minDistance = 1000000000;
+        for (int x = 0; x < navs.GetLength(0); x++)
+        {
+            for (int y = 0; y < navs.GetLength(1); y++)
+            {
+                navTile tile = navs[x, y];
+                if (tile.traversible)
+                {
+                    Vector3 pos = navToWorld(x, y);
+                    float distance = Vector3.Distance(targetPos, pos);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        result = new Vector2Int(x, y);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    // Doesn't work. TODO
+    //public Vector3 getNearestTraversiblePosition(Vector3 targetPos)
+    //{
+    //    Vector2Int result = new Vector2Int(-1, -1);
+    //    float minDistance = 1000000000;
+
+    //    Vector2Int previousResult = result;
+    //    float previousDistance = minDistance;
+    //    for (int x = 0; x < navs.GetLength(0); x++)
+    //    {
+    //        for (int y = 0; y < navs.GetLength(1); y++)
+    //        {
+    //            navTile tile = navs[x, y];
+    //            if (tile.traversible)
+    //            {
+    //                Vector3 pos = navToWorld(x, y);
+    //                float distance = Vector3.Distance(targetPos, pos);
+    //                if (distance < minDistance)
+    //                {
+    //                    previousResult = result;
+    //                    previousDistance = minDistance;
+
+    //                    minDistance = distance;
+    //                    result = new Vector2Int(x, y);
+    //                }
+    //            }
+    //        }
+    //    }
+    //    return Vector3.Lerp(navToWorld(previousResult), navToWorld(result), previousDistance / (previousDistance + minDistance));
+    //}
+
+    /// <summary>
+    /// set oppositeDirection to false if this is just a state reaffirming thing
+    /// </summary>
+    /// <param name="state"></param>
+    /// <param name="oppositDirection"></param>
+    public void ghostsModeSwitch(Ghost.State state, bool oppositDirection)
+    {
+        foreach(Ghost ghost in ghosts)
+        {
+            if (ghost.state == Ghost.State.dead || ghost.state == Ghost.State.unspawned || ghost.state == Ghost.State.spawning)
+                continue;
+            ghost.state = state;
+
+            if (oppositDirection)
+            {
+                int oppositeDirection = (int)ghost.direction - 2;
+                if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
+                ghost.direction = (Ghost.Direction)oppositeDirection;
+            }
+        }
+        if (oppositDirection)
+            print("Switched ghost modes to " + state);
+    }
+
+    /// <summary>
+    /// Returns if the ghosts should be chasing or scattering, based on the game timer
+    /// </summary>
+    /// <returns></returns>
+    public Ghost.State getDefaultGhostState()
+    {
+        if (timerStep % 2 == 1)
+            return Ghost.State.scatter;
+        else
+            return Ghost.State.chase;
+    }
+
     // Update is called once per frame
     void Update()
     {
         if (cam.transform.localPosition != Vector3.zero)    // to allow moving the character to test
             OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));
 
-        packman.transform.position = new Vector3(cam.transform.position.x, 0, cam.transform.position.z);
+        //packman.transform.position = new Vector3(cam.transform.position.x, 0, cam.transform.position.z);
+        //packman.transform.position = navToWorld(worldToNav(cam.transform.position));
+        packman.transform.position = navToWorld(getNearestTraversibleTile(cam.transform.position));
+        //packman.transform.position = getNearestTraversiblePosition(cam.transform.position);
         packman.transform.rotation = Quaternion.Euler(new Vector3(0, cam.transform.rotation.eulerAngles.y, 0));
         packmanPos = Game.worldToNav(packman.transform.position);
 
-        navTile pacTile = Game.nav(packmanPos);
-        if (pacTile.hasItem)
+        if (!paused)
         {
-            pacTile.hasItem = false;
-            //print("nommed " + packmanPos + pacTile.isDot);
-            GPUInstancing.Bots.bot bot = GPUInstancing.Bots.bots.list[pacTile.dotRef];
-
-            AudioSource player = waka1Player;
-            if (waka2)
+            // scatter chase scatter chase...
+            if (frightened <= 0)
             {
-                player = waka2Player;
-                waka2 = false;
-            } else
-            {
-                waka2 = true;
+                if (timerStep < timerSequence.Count)
+                {
+                    timer += Time.deltaTime;
+                    if (timer >= timerSequence[timerStep])
+                    {
+                        ghostsModeSwitch(getDefaultGhostState(), true);
+                        //if (timerStep % 2 == 1)
+                        //    ghostsModeSwitch(Ghost.State.scatter);
+                        //else
+                        //    ghostsModeSwitch(Ghost.State.chase);
+                        timerStep++;
+                        timer = 0;
+                    }
+                }
+                else
+                    ghostsModeSwitch(Ghost.State.chase, false); // TODO This should flip them opposite the first time it changes, then never again
             }
 
-            player.transform.position = bot.pos;
-            IEnumerator coroutine = PlayPauseCoroutine(player, 0, 3);
-            StartCoroutine(coroutine);
+            if (frightened > 0)
+            {
+                frightened -= Time.deltaTime;
+                if (frightened <= 0)
+                {
+                    //foreach(Ghost ghost in ghosts)
+                    //{
+                    //    if (ghost.state == Ghost.State.frightened)
+                    //    {
+                    //        //ghost.state = Ghost.State.chase;    // TODO not accurate
+                    //        if (timerStep % 2 == 0)
+                    //            ghostsModeSwitch(Ghost.State.scatter);
+                    //        else
+                    //            ghostsModeSwitch(Ghost.State.chase);
+                    //    }
+                    //}
+                    //if (timerStep % 2 == 1)
+                    //    ghostsModeSwitch(Ghost.State.scatter);
+                    //else
+                    //    ghostsModeSwitch(Ghost.State.chase);
+                    ghostsModeSwitch(getDefaultGhostState(), true);
+                }
 
-            bot.pos += new Vector3(0, 3, 0);
+                foreach (Ghost ghost in ghosts)
+                {
+                    if (ghost.state == Ghost.State.frightened)
+                    {
+                        if (worldToNav(ghost.transform.position) == worldToNav(packman.transform.position))
+                        {
+                            ghost.state = Ghost.State.dead;
+                        }
+                    }
+                }
+            }
 
-            GPUInstancing.Bots.bots.list[pacTile.dotRef] = bot;
-            GPUInstancing.Bots.bots.fillBuffer();
-            navs[packmanPos.x, packmanPos.y] = pacTile;
+
+            // eat stuff
+            navTile pacTile = Game.nav(packmanPos);
+            if (pacTile.hasItem)
+            {
+                pacTile.hasItem = false;
+                print("nommed " + packmanPos + pacTile.isDot);
+                GPUInstancing.Bots.bot bot = GPUInstancing.Bots.bots.list[pacTile.dotRef];
+
+                AudioSource player = waka1Player;
+                if (waka2)
+                {
+                    player = waka2Player;
+                    waka2 = false;
+                }
+                else
+                {
+                    waka2 = true;
+                }
+
+                player.transform.position = bot.pos;
+                IEnumerator coroutine = PlayPauseCoroutine(player, 0, 3);
+                StartCoroutine(coroutine);
+
+                //bot.pos += new Vector3(0, 3, 0);
+                bot.pos += new Vector3(0, -1, 0);
+                bot.alive = -1;
+
+                if (!pacTile.isDot)
+                {
+                    //FrightenGhosts(5);
+                    //ghostsModeSwitch(Ghost.State.frightened);
+                    ghostsModeSwitch(Ghost.State.frightened, true);
+                    frightened = 10;
+                }
+
+                GPUInstancing.Bots.bots.list[pacTile.dotRef] = bot;
+                GPUInstancing.Bots.bots.fillBuffer();
+                navs[packmanPos.x, packmanPos.y] = pacTile;
+            }
         }
+
+        // Settings
+        if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > .5f)
+        {
+            // main hand trigger + joystick up/down scales the world (ie scales your playspace object)
+            //OVRCameraRig.localScale += Vector3.one * Time.deltaTime * OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y * .5f;
+            float stick = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y;
+            if (stick > 0)
+                OVRCameraRig.localScale = OVRCameraRig.localScale * (1 + stick * Time.deltaTime);
+            else if (stick < 0)
+                OVRCameraRig.localScale = OVRCameraRig.localScale * (1 + (stick * Time.deltaTime * .5f));
+
+            // TODO adjust ghost speed!
+        }
+        if (OVRInput.Get(OVRInput.Button.One))
+            paused = true;
+        else
+            paused = false;
+
 
 
         List<Vector4> ghostPositions = new List<Vector4>();
         foreach(Ghost ghost in ghosts)
         {
-            ghostPositions.Add(ghost.transform.position);
+            if (ghost.state != Ghost.State.frightened && ghost.state != Ghost.State.dead)
+            {
+                ghostPositions.Add(ghost.transform.position);
+            }
+            else
+            {
+                ghostPositions.Add(Vector3.one * -10000);
+            }
         }
         GPUInstancing.Bots.botMaterial.SetVectorArray("ghostPositions", ghostPositions);
 
@@ -315,6 +525,19 @@ public class Game : MonoBehaviour
         GPUInstancing.Bots.botMaterial.SetVector("mapCenter", mapCenter);
 
     }
+
+    //public void FrightenGhosts(float time)
+    //{
+    //    frightened = time;
+    //    foreach(Ghost ghost in ghosts)
+    //    {
+    //        ghost.state = Ghost.State.frightened;
+    //        int oppositeDirection = (int)ghost.direction - 2;
+            
+    //        if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
+    //        ghost.direction = (Ghost.Direction)oppositeDirection;
+    //    }
+    //}
 
     /// <summary>
     /// plays a sound for the set time without holding up the main game thread

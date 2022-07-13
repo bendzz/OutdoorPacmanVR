@@ -93,6 +93,8 @@ TODO
 -siren background
 
 
+-set chase after scatter
+
 
 
 

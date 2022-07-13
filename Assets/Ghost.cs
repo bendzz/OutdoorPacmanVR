@@ -71,6 +71,8 @@ public class Ghost : MonoBehaviour
     Material material;
     AudioSource audio;
 
+    Vector3 startScale;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -80,6 +82,8 @@ public class Ghost : MonoBehaviour
             blinkyRef = this;
 
         speedDefault = game.ghostSpeedDefault;
+
+        startScale = transform.localScale;
 
         directions = new Vector2Int[4];
         directions[0] = new Vector2Int(0, 1);
@@ -222,77 +226,79 @@ public class Ghost : MonoBehaviour
 
                 }
 
-                if (validDirections.Count > 0)
+                // Set direction
                 {
-                    // wander randomly; default
-                    Direction d = validDirections[(int)(Random.value * (validDirections.Count - 1) + .5f)];
-
-                    if (validDirections.Count > 1)
+                    if (validDirections.Count > 0)
                     {
-                        // Change direction?
-                        Vector3 target = Vector3.zero;
-                        if (state == State.spawning)
-                            target = game.spawnTarget.position;
+                        // wander randomly; default
+                        Direction d = validDirections[(int)(Random.value * (validDirections.Count - 1) + .5f)];
 
-                        bool clydeScatter = false;
-                        if (state == State.chase)
+                        if (validDirections.Count > 1)
                         {
-                            // https://www.gamedeveloper.com/design/the-pac-man-dossier
-                            Vector3 ppos = game.packman.transform.position;
-                            if (ghost == Name.blinky)
-                                target = Game.navToWorld(game.packmanPos);  // completely authentic
-                            if (ghost == Name.pinky)
-                                target = ppos + (game.packmanFacingTarget.position - ppos) * 4; // mostly authentic; doesn't round to nearest tile, and the VR player can more easily change looking direction than original packman could
-                            if (ghost == Name.inky)
+                            // Change direction?
+                            Vector3 target = Vector3.zero;
+                            if (state == State.spawning)
+                                target = game.spawnTarget.position;
+
+                            bool clydeScatter = false;
+                            if (state == State.chase)
                             {
-                                // Find the spot 2 tiles ahead of packman. Get a vector from blinky to that. extend it 2x further. That's the target.
-                                Vector3 ahead = ppos + (game.packmanFacingTarget.position - ppos) * 2;
-                                target = ahead + (ahead - Ghost.blinkyRef.transform.position);
-                            }
-                            if (ghost == Name.clyde)
-                            {
-                                if (Vector3.Distance(transform.position, ppos) > (game.pixelSize * 8) * 8)
-                                    target = Game.navToWorld(game.packmanPos);  // chase
-                                else
+                                // https://www.gamedeveloper.com/design/the-pac-man-dossier
+                                Vector3 ppos = game.packman.transform.position;
+                                if (ghost == Name.blinky)
+                                    target = Game.navToWorld(game.packmanPos);  // completely authentic
+                                if (ghost == Name.pinky)
+                                    target = ppos + (game.packmanFacingTarget.position - ppos) * 4; // mostly authentic; doesn't round to nearest tile, and the VR player can more easily change looking direction than original packman could
+                                if (ghost == Name.inky)
                                 {
-                                    clydeScatter = true;// Scatter (back to his corner)
+                                    // Find the spot 2 tiles ahead of packman. Get a vector from blinky to that. extend it 2x further. That's the target.
+                                    Vector3 ahead = ppos + (game.packmanFacingTarget.position - ppos) * 2;
+                                    target = ahead + (ahead - Ghost.blinkyRef.transform.position);
+                                }
+                                if (ghost == Name.clyde)
+                                {
+                                    if (Vector3.Distance(transform.position, ppos) > (game.pixelSize * 8) * 8)
+                                        target = Game.navToWorld(game.packmanPos);  // chase
+                                    else
+                                    {
+                                        clydeScatter = true;// Scatter (back to his corner)
+                                    }
                                 }
                             }
-                        }
-                        if (state == State.scatter || clydeScatter)
-                        {
-                            if (ghost == Name.blinky)
-                                target = Game.navToWorld(new Vector2Int(25, 35));
-                            if (ghost == Name.pinky)
-                                target = Game.navToWorld(new Vector2Int(2, 35));
-                            if (ghost == Name.inky)
-                                target = Game.navToWorld(new Vector2Int(27, 0));
-                            if (ghost == Name.clyde)
-                                target = Game.navToWorld(new Vector2Int(0, 0));
-                        }
-
-
-                        if (target != Vector3.zero)
-                        {
-                            // choose the direction tile nearest to the target point
-                            float nearestTile = 100000000;
-                            foreach (Direction dir in validDirections)
+                            if (state == State.scatter || clydeScatter)
                             {
-                                Vector3 tilePos = Game.navToWorld(oldPos + directions[(int)dir]);
-                                float distance = Vector3.Distance(target, tilePos);
-                                //print("turn option " + dir + " distance " + distance);
-                                if (distance < nearestTile)
-                                {
-                                    d = dir;
-                                    nearestTile = distance;
-                                }
+                                if (ghost == Name.blinky)
+                                    target = Game.navToWorld(new Vector2Int(25, 35));
+                                if (ghost == Name.pinky)
+                                    target = Game.navToWorld(new Vector2Int(2, 35));
+                                if (ghost == Name.inky)
+                                    target = Game.navToWorld(new Vector2Int(27, 0));
+                                if (ghost == Name.clyde)
+                                    target = Game.navToWorld(new Vector2Int(0, 0));
                             }
-                            //print("CHOSE DIRECTION " + d);
+
+
+                            if (target != Vector3.zero)
+                            {
+                                // choose the direction tile nearest to the target point
+                                float nearestTile = 100000000;
+                                foreach (Direction dir in validDirections)
+                                {
+                                    Vector3 tilePos = Game.navToWorld(oldPos + directions[(int)dir]);
+                                    float distance = Vector3.Distance(target, tilePos);
+                                    //print("turn option " + dir + " distance " + distance);
+                                    if (distance < nearestTile)
+                                    {
+                                        d = dir;
+                                        nearestTile = distance;
+                                    }
+                                }
+                                //print("CHOSE DIRECTION " + d);
+                            }
                         }
+
+                        direction = d;
                     }
-
-                    direction = d;
-
                     // This bit starts it off in the right place and prevents it from running 2 direction changes in a row
                     Vector2 offset = (Vector2)directions[(int)direction] * .0001f;
                     transform.position = Game.navToWorld(pos.x, pos.y) + new Vector3(offset.x, 0, offset.y);
@@ -315,6 +321,15 @@ public class Ghost : MonoBehaviour
 
         speedDefault = game.ghostSpeedDefault;
         transform.position += vec23(directions[(int)direction]) * speedDefault * Time.deltaTime;
+
+
+        // make em big n scary when they're close
+        float pacDis = Vector3.Distance(game.packman.transform.position, transform.position);
+        float growRadius = 8f;
+        float bigger = Mathf.Clamp01((growRadius - pacDis) / growRadius);
+        bigger = 1 + bigger * 1;
+        transform.localScale = startScale * bigger;
+
 
         oldPos = pos;
         oldPosCenter = posCenter;

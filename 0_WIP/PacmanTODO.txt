@@ -87,7 +87,10 @@ sfx_belt_in	// bubbly noise
 sine	//hum
 train
 
-ghost scaling!
+TODO
+-power pills
+-IRL walls
+-siren background
 
 
 

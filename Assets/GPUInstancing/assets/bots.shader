@@ -170,7 +170,7 @@ Shader "Custom/bots"
                 if (g == 1)
                     gcol = float4(1, .4, .7, 1);
                 if (g == 2)
-                    gcol = float4(0, 1, 1, 1);
+                    gcol = float4(0, 1, .7, 1);
                 if (g == 3)
                     gcol = float4(1, .7, 0, 1);
                 //gcol -= .5;
@@ -182,15 +182,19 @@ Shader "Custom/bots"
                 //color = lerp(color, gcol, pow(strength, 3) * .5);
                 color = lerp(color, saturate(gcol - (1 - strength)), pow(strength, 3) * 1);
                 //color = lerp(color, float4(0, 0, 0, 1), saturate((strength - .86) / .09));
-                color = lerp(color, float4(-1, -1, -1, 1), saturate((strength - .89) / .09));
+                if (submeshI == 0)
+                    color = lerp(color, float4(-1, -1, -1, 1), saturate((strength - .89) / .15));
             }
 
             // Pacman game specific warping effect
             for (v = 0; v < 3; v++) {
                 for (int g = 0; g < 4; g++) {
                     //float3 spot = ghostPositions[g] + float3(0, .5, 0);
-                    float3 spot = ghostPositions[g] + float3(.3, 0, .3);
-                    float3 offset = lerp(bo.pos, vecs[v], .8) - spot;    // makes it half pushing objects half warping them
+                    float3 spot = ghostPositions[g] + float3(.1, 0, .1);
+                    float lerpStr = .8; 
+                    if (submeshI > 0)
+                        lerpStr = .3;
+                    float3 offset = lerp(bo.pos, vecs[v], lerpStr) - spot;    // makes it half pushing objects half warping them
                     float range = 6;
                     float power = saturate((range - length(offset)) / range);
                     power = pow(power, 2) * 1;

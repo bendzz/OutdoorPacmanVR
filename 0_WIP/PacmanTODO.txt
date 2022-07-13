@@ -50,7 +50,14 @@ TODO July 12
 -raise the walls higher when ghosts are around
 -smaller audio zones
 -Darker passthrough (especially the sky) for creepiness
+	-A big cube (with no bottom, and inverted normals) around the play area, tinted to .75 alpha black.
 -Darker blue walls
+	-"light" sources from the ghosts; verts tint the ghost color as it draws near (but darker)
+		-light is attentuated hard vertically so it's more around the middle of walls
+		-mock HDR support? When length(light) goes well above 1 it starts turning white?
+-swirly ghost distortion
+	-Offset the ghost distortion in a slowly moving random pattern so the dots fly around them in different ways
+	-Just a rotating offset like .3 off its center, moving along X and Y (up and sideways)?
 
 GAMPLAY
 -A packerman, and dot eating

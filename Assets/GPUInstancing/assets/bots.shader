@@ -1,4 +1,6 @@
-﻿Shader "Custom/bots"
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Custom/bots"
 {
     Properties
     {
@@ -101,6 +103,14 @@
             //float4 parentPos : TEXCOORD3;	//debug
             //UNITY_FOG_COORDS(1)
             float4 info : TEXCOORD1;
+
+            float3 normals : NORMAL0;
+
+            //pacman
+            //float4 lightPos0 : COLOR1;
+            float4 lightPos0 : float4; 
+            //float4 lightPos0 : SV_POSITION1;
+            float4 pixelPos : float41;    // Hacky hack to be able to make sense of the lightPos coordinates given
         };
 
         [maxvertexcount(4)]
@@ -151,6 +161,12 @@
                     vecs[v] += normalize(offset) * power;
                 }
             }
+            // pacman lights
+            float4 lightPos[4];
+            for (int g = 0; g < 4; g++) {
+                lightPos[g] = ghostPositions[g];
+            }
+
 
             // map scaling
             for (int v = 0; v < 3; v++) {
@@ -164,6 +180,7 @@
             //float3 normal = -getNormal(meshVertices[meshTriangles[tri + 0] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 1] + sub.verticesStart].xzy, meshVertices[meshTriangles[tri + 2] + sub.verticesStart].xzy);
             float3 normal = -getNormal(vecs[0], vecs[1], vecs[2]);
 
+
             float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
             light = light * .8 + .2;
             //for (v = 0; v < 3; v++) {
@@ -176,6 +193,25 @@
                 gout.color.xyz = color.xyz * light;
                 gout.color.a = color.a;
 
+                gout.normals = normal;
+
+                // pacmanLights
+                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(lightPos[0].xyz,1));
+                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(ghostPositions[0].xyz,1));
+                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(10,10,10,1));
+                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(100,100,100,1));
+                gout.lightPos0 = gout.pos;
+                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(vecs[v], 1));
+                gout.lightPos0 = mul(UNITY_MATRIX_VP, float4(ghostPositions[0].xyz * 100, 1));
+                gout.lightPos0 = ghostPositions[0].xyzw * 20;
+                //gout.lightPos0 = float4(100,100,100,100);
+                gout.lightPos0 = UnityObjectToClipPos(float4(ghostPositions[0].xyz, 1)) * 100;
+                gout.lightPos0 = UnityObjectToClipPos(ghostPositions[0].xyz);
+                
+                
+                gout.pixelPos = UnityObjectToClipPos(vecs[v]);
+                //gout.pixelPos = UnityObjectToClipPos(float3(vecs[v].x, ghostPositions[0].y, ));
+
                 triStream.Append(gout);
             }
             //triStream.RestartStrip();
@@ -185,6 +221,64 @@
         {
             fixed4 col = i.color;
         //col.a = 1;
+
+
+            
+            // cheap relfections
+        float3 ns = normalize(i.normals.xyz);
+        //float3 ls = -normalize(debugInput.xyz);
+        float3 ls = -normalize(float3(1,0,0)); 
+         
+        float3 reflected = ls - 2 * dot(ns, ls) * ns;
+
+        //pixelDiffuse.w = pow(saturate(reflected.z - .2), 6) * .5 * tempMultiplier;
+
+
+        //float2 blob = float2(.5, .4);
+        float2 blob = i.lightPos0.xy;
+
+        float radius = .1;
+        //float radius = 100;
+        //col.r += length(blob - (i.pos.xy / _ScreenParams.xy));
+        //col += saturate(radius - length(blob - (i.pos.xy / _ScreenParams.xy))) / radius;
+        //col += saturate(radius - length(blob - i.pos.xy)) / radius;
+        //col = length(blob - i.pos.xy) / 1000;
+        //col = length(i.lightPos0.xy - (i.pos.xy / _ScreenParams.xy)) / 1000;
+        //col = length(i.lightPos0.xy - (i.pos.xy / _ScreenParams.xy)) / 10;
+
+        col = saturate(radius - length(blob - (i.pos.xy / _ScreenParams.xy))) / radius;
+        col = saturate(radius - length(blob - (i.pos.xy /1))) / radius;
+        //col.xy = blob;
+        col.xy = (i.pos.xy - i.lightPos0.xy * 1000) / 1000 ;
+        col.xy = (i.pos.xy - i.lightPos0.xy * _ScreenParams.xy) / 1000 ;
+        col.xy = (i.pos.xy - i.lightPos0.xy * _ScreenParams.xy * .1) / _ScreenParams.xy;
+        col.xy = (i.lightPos0.xy * _ScreenParams.xy * .1 - i.pos.xy) / _ScreenParams.xy;
+        
+        col.xy = (i.lightPos0.xy - i.pixelPos.xy) / 1; 
+
+        col.xy = i.lightPos0.xy / (_ScreenParams.xy * .05);
+        col.xy = (i.lightPos0.xy / i.lightPos0.w) / (_ScreenParams.xy * .01);
+        col.xy = (i.lightPos0.xy / i.lightPos0.w);// / (_ScreenParams.xy * .01);
+        col.xy = 1 + (i.lightPos0.xy / i.lightPos0.w);// / (_ScreenParams.xy * .01);
+        col.xy = .5 + (i.lightPos0.xy / i.lightPos0.w) / 2;// / (_ScreenParams.xy * .01);
+        col.xy = (.5 + (i.lightPos0.xy / i.lightPos0.w) / 2) - (i.pos.xy / _ScreenParams.xy);
+
+        float2 screenUV = (i.pos.xy / _ScreenParams.xy);
+        screenUV = float2(screenUV.x, 1 - screenUV.y);
+        col.xy = (.5 + (i.lightPos0.xy / i.lightPos0.w) / 2) - screenUV;
+
+        //col.xy = i.lightPos0.w;// / (_ScreenParams.xy * .05);
+        //col.xy = (i.pos.xy/ _ScreenParams.xy);
+
+        //col.rb = i.pos.xy / _ScreenParams.xy;
+
+        //col.rb = _ScreenParams.xy / 2000;
+
+        //col.xyz = reflected.z;
+        //col.xyz = ns;
+
+        //col.xy = i.lightPos0.xy;
+
             return col;
         }
 

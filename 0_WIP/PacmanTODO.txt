@@ -48,13 +48,8 @@ TODO July 12
 	-Just a rotating offset like .3 off its center, moving along X and Y (up and sideways)?
 
 GAMPLAY
--A packerman, and dot eating
-    // Game TODO
-    // spawn order: pinky, inky, clyde
-    // give dots to current preferred ghost
-    // reset counters on new level
-    // TODO later: The 'keep ghosts stuck in the ghost house with global dot counter glitch' trick 
-    // Global counter; pinky leaves at 7, inky at 17, clyde at 32?
+
+
 
 SETTINGS
 OUTPUT: 
@@ -69,13 +64,13 @@ OUTPUT:
 CONTROLS
 -GRIP to lock map to headset for repositioning IRL space
 	-pause game during this
--Pause button
 
+(Ghost noise options)
 sfx_belt_in	// bubbly noise
 sine	//hum
 train
 
-
+ 
 
 TODO
 -IRL walls
@@ -83,11 +78,13 @@ TODO
 sounds: Eating ghost, 
 
 
--spawn dot timers
 
 -2 Github embedded gifs: A ghost approaching life sized as you back away, and board game sized play
 	-social image https://github.com/bendzz/OutdoorPacmanVR/settings
 
 
+TODO 
+-ghost model
+	-lower deformation zone for dots, raise it for walls
 
 		

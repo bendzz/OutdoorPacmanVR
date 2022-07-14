@@ -55,11 +55,11 @@ public class Ghost : MonoBehaviour
     /// <summary>
     /// One ghost at a time tracks how many dots pacman has eaten to determine when it spawns https://www.gamedeveloper.com/design/the-pac-man-dossier
     /// </summary>
-    int dotCounter;
+    public int spawnDotCounter;
     /// <summary>
     /// How big the dotCounter gets before the ghost spawns
     /// </summary>
-    int dotLimit;
+    public int spawnDotLimit;
 
     /// <summary>
     /// For playing the unspawned animation and respawning
@@ -99,18 +99,18 @@ public class Ghost : MonoBehaviour
         directions[3] = new Vector2Int(-1, 0);
 
         // set dotLimits, from https://www.gamedeveloper.com/design/the-pac-man-dossier ghost house section
-        dotCounter = 0;
-        dotLimit = 0;
+        spawnDotCounter = 0;
+        spawnDotLimit = 0;
         if (ghost == Name.inky)
         {
             if (game.level == 1)
-                dotLimit = 30;
+                spawnDotLimit = 30;
         } else if (ghost == Name.clyde)
         {
             if (game.level == 1)
-                dotLimit = 60;
+                spawnDotLimit = 60;
             else if (game.level == 2)
-                dotLimit = 50;
+                spawnDotLimit = 50;
         }
 
         // Spawn in a valid position somewhere
@@ -158,20 +158,40 @@ public class Ghost : MonoBehaviour
         Vector2Int pos = Game.worldToNav(transform.position);
         Vector2Int posCenter = Game.worldToNavCenters(transform.position);
 
-        // TODO: Check if ghost is outside bounds, if it is put it back at spawn or the nearest traversible tile
 
+        // Check if out of bounds 
+        Game.navTile currentTile;
+        try
+        {
+            currentTile = Game.nav(pos);
+        } catch(System.Exception e)
+        {
+            Debug.LogError("ghost " + ghost + " out of bounds at " + pos + ", returning to bounds.");
+            transform.position = Game.navToWorld(game.getNearestTraversibleTile(transform.position));
 
-        Game.navTile currentTile = Game.nav(pos);
+            pos = Game.worldToNav(transform.position);
+            posCenter = Game.worldToNavCenters(transform.position);
+        }
+        currentTile = Game.nav(pos);
+
 
         if (state == State.unspawned)
-            if (dotCounter >= dotLimit)
+        {
+            if (spawnDotCounter >= spawnDotLimit)
+            {
                 state = State.spawning;
+                print("spawnDotLimit " + spawnDotLimit + " reached! Spawning " + ghost);
+            }
+            //if (ghost == Name.blinky)
+            //    state = State.spawning;
+        }
 
         if (state == State.unspawned && !currentTile.ghostStart)
             transform.position = startPosition;
 
         if (state == State.spawning && currentTile.traversible)
-            state = State.scatter;  // spawned in proper
+            //state = State.scatter;  // spawned in proper
+            state = game.getDefaultGhostState();
 
         if (posCenter != oldPosCenter)  // moved past the center of a tile, check for new directions
         {
@@ -282,7 +302,8 @@ public class Ghost : MonoBehaviour
                                 target = startPosition;
                                 if (Game.worldToNav(startPosition) == Game.worldToNav(transform.position))
                                 {
-                                    state = State.spawning; // TODO not quite accurate
+                                    //state = State.spawning; // TODO not quite accurate
+                                    state = State.unspawned; // TODO not quite accurate
                                 }
                             }
 
@@ -353,6 +374,10 @@ public class Ghost : MonoBehaviour
 
         // move ghost
         {
+            // TODO more detailed movement speeds
+            // Slower in teleporting tunnel
+            // Level speeds, timer speeds
+            // https://www.gamedeveloper.com/design/the-pac-man-dossier
             speedDefault = game.ghostSpeedDefault;
             if (state == State.dead)
                 speedDefault = game.ghostSpeedDefault * 2;

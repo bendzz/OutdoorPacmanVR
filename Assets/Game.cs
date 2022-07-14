@@ -1,3 +1,5 @@
+// Gameplay mostly informed from https://www.gamedeveloper.com/design/the-pac-man-dossier
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -101,6 +103,11 @@ public class Game : MonoBehaviour
 
     Vector3 rigStartPos;
 
+    // TODO 3 seconds beyond level 5.
+    /// <summary>
+    /// If pacman goes 4 seconds without eating a dot, a ghost is allowed to spawn
+    /// </summary>
+    float timeSinceDotEaten;
 
     /// <summary>
     /// For adjusting settings like ghost speed while paused (while blinky whips around demoing the speed)
@@ -114,8 +121,10 @@ public class Game : MonoBehaviour
         public Ghost.Direction oDirection;
     }
     public PausedBlinkyDemo pausedBlinkyDemo;
-    //Vector3 pausedOriginalOVRSettings;
-    //Vector3 pausedBlinkyOriginalPosition;
+
+
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -134,6 +143,7 @@ public class Game : MonoBehaviour
         // scatter, chase, scatter, chase, scatter, chase, scatter, chase forever
         timerSequence = new List<float> { 7, 20, 7, 20, 5, 20 };
 
+        timeSinceDotEaten = 0;
 
         Color[] pixels = map.GetPixels();
         Color[] pixelsNav = mapNav.GetPixels();
@@ -151,7 +161,9 @@ public class Game : MonoBehaviour
                 navs[x,y] = new navTile();
             }
         }
+        
 
+        // Read the pacman map images
         for (int x = 0; x < dims.x; x++)
         {
             for (int y = 0; y < dims.y; y++)
@@ -225,7 +237,7 @@ public class Game : MonoBehaviour
             }
         }
 
-
+        // Setup GPU meshes
         GPUInstancing.Bots.bots = new CSBuffer<GPUInstancing.Bots.bot>("bots");
         GPUInstancing.Bots.bots.list.AddRange(walls);
         GPUInstancing.Bots.bots.list.AddRange(dots);
@@ -238,8 +250,6 @@ public class Game : MonoBehaviour
         GPUInstancing.Bots.submeshInstances.Add(pills.Count * 1);
 
 
-        //GPUInstancing.Bots.bots = new CSBuffer<GPUInstancing.Bots.bot>("bots");
-        //GPUInstancing.Bots.bots.list = walls;
         GPUInstancing.Bots.bots.fillBuffer();
 
 
@@ -323,35 +333,10 @@ public class Game : MonoBehaviour
         return result;
     }
 
-    // Doesn't work. TODO
+
+    // Doesn't work. TODO (use for pacman movement)
     //public Vector3 getNearestTraversiblePosition(Vector3 targetPos)
     //{
-    //    Vector2Int result = new Vector2Int(-1, -1);
-    //    float minDistance = 1000000000;
-
-    //    Vector2Int previousResult = result;
-    //    float previousDistance = minDistance;
-    //    for (int x = 0; x < navs.GetLength(0); x++)
-    //    {
-    //        for (int y = 0; y < navs.GetLength(1); y++)
-    //        {
-    //            navTile tile = navs[x, y];
-    //            if (tile.traversible)
-    //            {
-    //                Vector3 pos = navToWorld(x, y);
-    //                float distance = Vector3.Distance(targetPos, pos);
-    //                if (distance < minDistance)
-    //                {
-    //                    previousResult = result;
-    //                    previousDistance = minDistance;
-
-    //                    minDistance = distance;
-    //                    result = new Vector2Int(x, y);
-    //                }
-    //            }
-    //        }
-    //    }
-    //    return Vector3.Lerp(navToWorld(previousResult), navToWorld(result), previousDistance / (previousDistance + minDistance));
     //}
 
     /// <summary>
@@ -431,21 +416,6 @@ public class Game : MonoBehaviour
                 frightened -= Time.deltaTime;
                 if (frightened <= 0)
                 {
-                    //foreach(Ghost ghost in ghosts)
-                    //{
-                    //    if (ghost.state == Ghost.State.frightened)
-                    //    {
-                    //        //ghost.state = Ghost.State.chase;    // TODO not accurate
-                    //        if (timerStep % 2 == 0)
-                    //            ghostsModeSwitch(Ghost.State.scatter);
-                    //        else
-                    //            ghostsModeSwitch(Ghost.State.chase);
-                    //    }
-                    //}
-                    //if (timerStep % 2 == 1)
-                    //    ghostsModeSwitch(Ghost.State.scatter);
-                    //else
-                    //    ghostsModeSwitch(Ghost.State.chase);
                     ghostsModeSwitch(getDefaultGhostState(), true);
                 }
 
@@ -463,6 +433,7 @@ public class Game : MonoBehaviour
 
 
             // eat stuff
+            bool dotEaten = false;
             navTile pacTile = Game.nav(packmanPos);
             if (pacTile.hasItem)
             {
@@ -491,16 +462,55 @@ public class Game : MonoBehaviour
 
                 if (!pacTile.isDot)
                 {
-                    //FrightenGhosts(5);
-                    //ghostsModeSwitch(Ghost.State.frightened);
                     ghostsModeSwitch(Ghost.State.frightened, true);
                     frightened = 15;
+                } else
+                {
+                    // Feed unspawned ghosts
+                    foreach (Ghost ghost in ghosts)
+                    {
+                        // spawn order: pinky, inky, clyde
+                        // give dots to current preferred ghost until its spawn counter is reached
+                        if (ghost.state == Ghost.State.unspawned)
+                        {
+                            ghost.spawnDotCounter += 1;
+                            break;
+                        } 
+                    }
+                    //TODO:
+                    // reset counters on new level
+                    // The global dot counter when pacman dies; "Whenever a life is lost, the system disables (but does not reset) the ghosts' individual dot counters ..."
+                        // Global counter; pinky leaves at 7, inky at 17, clyde at 32?
+                    // TODO later: The 'keep ghosts stuck in the ghost house with global dot counter glitch' trick  
+
+                    dotEaten = true;
                 }
 
                 GPUInstancing.Bots.bots.list[pacTile.dotRef] = bot;
                 GPUInstancing.Bots.bots.fillBuffer();
                 navs[packmanPos.x, packmanPos.y] = pacTile;
             }
+
+            if (!dotEaten)
+            {
+                timeSinceDotEaten += Time.deltaTime;
+                if (timeSinceDotEaten >= 4) // TODO only 3 seconds after level 5
+                {
+                    // spawn next ready ghost
+                    foreach (Ghost ghost in ghosts)
+                    {
+                        if (ghost.state == Ghost.State.unspawned)
+                        {
+                            ghost.state = Ghost.State.spawning;
+                            timeSinceDotEaten = 0;
+                            print("Pacman waited too long to eat a dot, spawning " + ghost);
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+                timeSinceDotEaten = 0;
         }
 
         // Settings
@@ -509,10 +519,6 @@ public class Game : MonoBehaviour
             disableEnhancedPlayerMovement = true;
         else
             disableEnhancedPlayerMovement = false;
-        //if (OVRInput.Get(OVRInput.Button.One))
-        //    paused = true;
-        //else
-        //    paused = false;
         
         // Adjust ghost speed
         if (OVRInput.Get(OVRInput.Axis1D.SecondaryIndexTrigger) > .5f)
@@ -532,7 +538,7 @@ public class Game : MonoBehaviour
 
             //controls
             float stick = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).y;
-            ghostSpeedDefault += stick * 2 * Time.deltaTime;
+            ghostSpeedDefault += stick * 5 * Time.deltaTime;
             if (ghostSpeedDefault > 11)
                 ghostSpeedDefault = 11;
             if (ghostSpeedDefault < 1)

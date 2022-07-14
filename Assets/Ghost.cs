@@ -68,6 +68,7 @@ public class Ghost : MonoBehaviour
     Vector2Int oldPos;
     Vector2Int oldPosCenter;
 
+    //[Tooltip("Ghost color material")]
     Material material;
     AudioSource audio;
 
@@ -78,6 +79,8 @@ public class Ghost : MonoBehaviour
     /// </summary>
     Vector3 target;
 
+    public Transform bodyMesh;
+    public Transform body;
     public List<Transform> eyes;
 
     // Start is called before the first frame update
@@ -141,7 +144,8 @@ public class Ghost : MonoBehaviour
         }
         oldPosCenter = Game.worldToNavCenters(transform.position);
 
-        MeshRenderer renderer = this.GetComponent<MeshRenderer>();
+        //MeshRenderer renderer = this.GetComponent<MeshRenderer>();
+        SkinnedMeshRenderer renderer = bodyMesh.GetComponent<SkinnedMeshRenderer>();
         material = renderer.material;
 
         audio = this.GetComponent<AudioSource>();
@@ -358,17 +362,22 @@ public class Ghost : MonoBehaviour
         }
 
         // ghost rotations
-        transform.rotation = Quaternion.Euler(0, (float)direction * 90, 0);
+        //transform.rotation = Quaternion.Euler(0, (float)direction * 90, 0);
+        transform.rotation = Quaternion.Euler(0, (float)direction * 90 + 180, 0);
+        //transform.rotation *= Quaternion.Euler(0, 360 * Time.deltaTime, 0);
+        body.rotation *= Quaternion.Euler(0, 360 * Time.deltaTime, 0); 
 
-        foreach(Transform eye in eyes)
+        foreach (Transform eye in eyes)
         {
             if (target == Vector3.zero)
             {
+                //eye.rotation = transform.rotation;
+                eye.rotation = transform.rotation * Quaternion.Euler(0, 180, 0);
                 break;
-                eye.rotation = transform.rotation;
             }
             eye.LookAt(target);
-            eye.rotation = Quaternion.Slerp(transform.rotation, eye.rotation, .75f);
+            //eye.rotation = Quaternion.Slerp(transform.rotation, eye.rotation, .75f);
+            eye.rotation = Quaternion.Slerp(transform.rotation * Quaternion.Euler(0, 180, 0), eye.rotation, .75f);
         }
 
 

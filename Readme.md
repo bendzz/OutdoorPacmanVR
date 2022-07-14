@@ -1,5 +1,5 @@
 GIF
-![]([https://github.com/Your_Repository_Name/Your_GIF_Name.gif](https://cdn.discordapp.com/attachments/552308534906454017/997160540570914946/Gif_1218.gif)
+![](https://cdn.discordapp.com/attachments/552308534906454017/997160540570914946/Gif_1218.gif)
 
 README
 

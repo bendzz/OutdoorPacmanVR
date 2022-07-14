@@ -89,6 +89,10 @@ public class Ghost : MonoBehaviour
 
     public float bodySpinAngle;
 
+    /// <summary>
+    /// Temporary; A death sound plays if a ghost hits you, this keeps it from playing 100 times in a second.
+    /// </summary>
+    public float killedPlayerTimer;
 
     // Start is called before the first frame update
     void Start()
@@ -206,6 +210,22 @@ public class Ghost : MonoBehaviour
             posCenter = Game.worldToNavCenters(transform.position);
         }
         currentTile = Game.nav(pos);
+
+
+        // Temporary 'kill the player but not really' system
+        if (killedPlayerTimer > 0)
+            killedPlayerTimer -= Time.deltaTime;
+        if (state != State.dead && state != State.frightened && state != State.unspawned)
+        {
+            if (pos == game.packmanPos) // TODO should maybe move this together with other 'touched pacman' events, like being eaten.
+            {
+                if (killedPlayerTimer <= 0)
+                {
+                    killedPlayerTimer = 3;
+                    game.killPackman();
+                }
+            }
+        }
 
 
         if (state == State.unspawned)

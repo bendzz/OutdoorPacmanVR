@@ -24,6 +24,6 @@ CONTROLS
 
 NOTES:
 
--Not entirely finished; it only has 1 level and you can't die; honor rules only. (Just crank the speeds up to simulate later levels). It's also missing some nuances of the original like cherries, a score and a win state. But it's pretty authentic; The pixel perfect map, ghost AI and spawning is all about right.
+-Not entirely finished; it only has 1 level and winning or dying don't actually end it. (Just crank the ghost speeds up to simulate later levels). It's also missing some nuances of the original like cherries and some AI glitches. But it's pretty authentic; The pixel perfect map, ghost AI and spawning is all about right.
 
 -Oculus Quests only; only tested on a Quest 2.

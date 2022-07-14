@@ -74,10 +74,9 @@ train
 
 TODO
 -IRL walls
-SOUNDS
-packman dead, all dots eaten + no siren
+-Bug where ghosts (blinky only?) when respawning from death can just exit straight out the bottom of the ghost house lol.
 
-no up tiles
+
 
 
 -2 Github embedded gifs: A ghost approaching life sized as you back away, and board game sized play

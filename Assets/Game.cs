@@ -46,6 +46,10 @@ public class Game : MonoBehaviour
     public AudioClip pacmanSiren;
     public AudioClip pacmanGhostsFrightened;
 
+    public AudioSource pacmanDeadSound;
+
+    public AudioSource gameVictorySound;
+
     //public AudioClip ghostAudioDefault;
     //public AudioClip ghostAudioEaten;
 
@@ -130,7 +134,9 @@ public class Game : MonoBehaviour
     }
     public PausedBlinkyDemo pausedBlinkyDemo;
 
-
+    public bool victorious;
+    public int dotsStarterCount;
+    public int dotsEatenCount;
 
 
 
@@ -275,11 +281,14 @@ public class Game : MonoBehaviour
                 tile.isDot = true;
                 if (i >= walls.Count + dots.Count)
                     tile.isDot = false;
+                if (tile.isDot)
+                    dotsStarterCount++;
                 tile.dotRef = i;
                 //print("item found at " + Game.worldToNav(bot.pos) + ", isDot " + tile.isDot + " ref " + i);
                 navs[pos.x, pos.y] = tile;
             }
         }
+        print(dotsStarterCount + " dots found on map");
     }
 
 
@@ -400,10 +409,31 @@ public class Game : MonoBehaviour
         }
         else
         {
-            if (levelAudioSource.clip != pacmanSiren)
+            if (!victorious)
             {
-                levelAudioSource.clip = pacmanSiren;
-                levelAudioSource.Play();
+                if (levelAudioSource.clip != pacmanSiren)
+                {
+                    levelAudioSource.clip = pacmanSiren;
+                    levelAudioSource.Play();
+                }
+            }
+            else
+                levelAudioSource.Stop();
+
+        }
+
+        if (!victorious)
+        {
+            //gameVictorySound
+            if (dotsEatenCount >= dotsStarterCount)
+            {
+                victorious = true;
+                gameVictorySound.enabled = true;
+                gameVictorySound.Play();
+
+                if (levelAudioSource.clip == pacmanSiren)
+                    levelAudioSource.Stop();
+
             }
         }
 
@@ -510,9 +540,10 @@ public class Game : MonoBehaviour
                     //TODO:
                     // reset counters on new level
                     // The global dot counter when pacman dies; "Whenever a life is lost, the system disables (but does not reset) the ghosts' individual dot counters ..."
-                        // Global counter; pinky leaves at 7, inky at 17, clyde at 32?
+                    // Global counter; pinky leaves at 7, inky at 17, clyde at 32?
                     // TODO later: The 'keep ghosts stuck in the ghost house with global dot counter glitch' trick  
 
+                    dotsEatenCount++;
                     dotEaten = true;
                 }
 
@@ -621,6 +652,19 @@ public class Game : MonoBehaviour
         GPUInstancing.Bots.botMaterial.SetVector("mapCenter", mapCenter);
 
     }
+
+     
+    /// <summary>
+    /// But not really. (Temp system)
+    /// </summary>
+    public void killPackman()
+    {
+        pacmanDeadSound.enabled = false;
+        pacmanDeadSound.enabled = true;
+        pacmanDeadSound.Play();
+        print("Pacman was 'killed'!");
+    }
+
 
 
     /// <summary>

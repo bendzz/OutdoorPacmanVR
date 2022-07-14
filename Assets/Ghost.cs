@@ -83,6 +83,8 @@ public class Ghost : MonoBehaviour
     public Transform body;
     public List<Transform> eyes;
 
+    public float bodySpinAngle;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -94,6 +96,7 @@ public class Ghost : MonoBehaviour
         speedDefault = game.ghostSpeedDefault;
 
         startScale = transform.localScale;
+        bodySpinAngle = 0;
 
         directions = new Vector2Int[4];
         directions[0] = new Vector2Int(0, 1);
@@ -361,28 +364,10 @@ public class Ghost : MonoBehaviour
                 direction = Direction.down;
         }
 
-        // ghost rotations
-        //transform.rotation = Quaternion.Euler(0, (float)direction * 90, 0);
-        transform.rotation = Quaternion.Euler(0, (float)direction * 90 + 180, 0);
-        //transform.rotation *= Quaternion.Euler(0, 360 * Time.deltaTime, 0);
-        body.rotation *= Quaternion.Euler(0, 360 * Time.deltaTime, 0); 
 
-        foreach (Transform eye in eyes)
-        {
-            if (target == Vector3.zero)
+
+            // move ghost
             {
-                //eye.rotation = transform.rotation;
-                eye.rotation = transform.rotation * Quaternion.Euler(0, 180, 0);
-                break;
-            }
-            eye.LookAt(target);
-            //eye.rotation = Quaternion.Slerp(transform.rotation, eye.rotation, .75f);
-            eye.rotation = Quaternion.Slerp(transform.rotation * Quaternion.Euler(0, 180, 0), eye.rotation, .75f);
-        }
-
-
-        // move ghost
-        {
             // TODO more detailed movement speeds
             // Slower in teleporting tunnel
             // Level speeds, timer speeds
@@ -451,6 +436,58 @@ public class Ghost : MonoBehaviour
 
         oldPos = pos;
         oldPosCenter = posCenter;
+    }
+
+    private void LateUpdate()
+    {
+
+        // ghost rotations
+        //Had to move it to LateUpdate() to go after animation, because the ani loop was breaking ONE eye's rotation! (And it was fine at first! Weird!)
+        {
+            //transform.rotation = Quaternion.Euler(0, (float)direction * 90, 0);
+            //transform.rotation = Quaternion.Euler(-20, (float)direction * 90 + 180, 0);
+            //transform.rotation = Quaternion.Euler(-20, (float)direction * 90 + 180, 0);
+
+            //Quaternion bodyRot = Quaternion.Euler(-20, (float)direction * 90 + 180, 0);   // tilt ghosts forward; ugly from top view
+            Quaternion bodyRot = Quaternion.Euler(0, (float)direction * 90 + 180, 0);
+            if (target != Vector3.zero)
+            {
+                transform.LookAt(target);
+                transform.rotation = transform.rotation * Quaternion.AngleAxis(180, transform.up);  // the model is backwards so LookAt is backwards
+                transform.rotation = Quaternion.Slerp(bodyRot, transform.rotation, .4f);
+            }
+            else
+                transform.rotation = bodyRot;
+             
+            bodySpinAngle += 360 * Time.deltaTime * (game.ghostSpeedDefault / 3);
+            if (bodySpinAngle > 360)
+                bodySpinAngle = 0;  // if you let the float get too big it'll get jittery I bet
+            //body.rotation *= Quaternion.Euler(0, 360 * Time.deltaTime * (game.ghostSpeedDefault / 3), 0);
+            body.rotation = Quaternion.Euler(0, bodySpinAngle, 0);
+
+            //Quaternion defaultRot = transform.rotation * Quaternion.Euler(0, 180, 0);
+            Quaternion defaultRot = transform.rotation * Quaternion.AngleAxis(180, transform.up);
+            foreach (Transform eye in eyes)
+            {
+                if (target == Vector3.zero)
+                {
+                    //eye.rotation = transform.rotation;
+                    eye.rotation = defaultRot;
+                }
+                else
+                {
+                    eye.LookAt(target);
+                    //eye.rotation = Quaternion.Slerp(transform.rotation, eye.rotation, .75f);
+                    eye.rotation = Quaternion.Slerp(defaultRot, eye.rotation, .75f);
+                    float maxAngle = 80;
+                    float angle = Quaternion.Angle(defaultRot, eye.rotation);
+                    if (angle > maxAngle)
+                        eye.rotation = Quaternion.Slerp(defaultRot, eye.rotation, (maxAngle / angle));
+                    //print("eye " + eye.name + " rotation " + eye.rotation);
+                }
+            }
+        }
+
     }
 
     public static Vector3 vec23(Vector2Int vec2)

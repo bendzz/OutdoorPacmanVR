@@ -156,8 +156,7 @@ Shader "Custom/bots"
 
             //if ((id) % 10 != 0) return;  // testing 
 
-
-             // pacman lights
+            // pacman lights
             float4 gcol = float4(1, 0, 0, 1);
             float4 lightPos[4];
             //for (int g = 0; g < 4; g++) {
@@ -251,11 +250,12 @@ Shader "Custom/bots"
 
                 // pacmanLights
 
-                gout.lightPos0 = UnityObjectToClipPos(ghostPositions[0].xyz);
-                gout.lightPos1 = UnityObjectToClipPos(ghostPositions[1].xyz);
-                gout.lightPos2 = UnityObjectToClipPos(ghostPositions[2].xyz);
-                gout.lightPos3 = UnityObjectToClipPos(ghostPositions[3].xyz);
-                
+                if (bo.alive != -1) {
+                    gout.lightPos0 = UnityObjectToClipPos(ghostPositions[0].xyz);
+                    gout.lightPos1 = UnityObjectToClipPos(ghostPositions[1].xyz);
+                    gout.lightPos2 = UnityObjectToClipPos(ghostPositions[2].xyz);
+                    gout.lightPos3 = UnityObjectToClipPos(ghostPositions[3].xyz);
+                }
 
                 triStream.Append(gout);
             }
@@ -285,6 +285,7 @@ Shader "Custom/bots"
         float radius = .05;
 
 
+        // TODO these screen space lights are really expensive GPU wise. Maybe only pass the top 2 through..?
         float2 screenUV = (i.pos.xy / _ScreenParams.xy);
         if (AndroidInvertScreenUVs == 0)
             screenUV = float2(screenUV.x, 1 - screenUV.y);    // NOTE! Needs to be enabled on PC but not on Quest 2!

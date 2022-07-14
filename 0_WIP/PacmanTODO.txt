@@ -75,6 +75,11 @@ train
 TODO
 -IRL walls
 -Bug where ghosts (blinky only?) when respawning from death can just exit straight out the bottom of the ghost house lol.
+-Ghosts out of bounds sometimes get stuck in the wall; try pushing them further back into the map
+
+-pacman sounds need more reach
+
+
 
 
 
@@ -84,8 +89,17 @@ TODO
 -Put MIT license on this and TF GJ games
 
 
-TODO 
--ghost model
-	-lower deformation zone for dots, raise it for walls
-
+TODO?
+-lower ghost deformation zone for dots, raise it for walls
+-Ghost model that morphs scary as it gets closer
+	-Comes apart in the middle, teeth are shown, eyes shrink
 		
+		
+		
+TODO LATER:
+-replace audio system with oculus VR high fidelity audio system (or steam's, with their occlusion system?)
+	-(Or just save this for another project)
+-Options to disable the shader colors (at least on the dots so they're more visible)
+-Anti cheat collision detection; pause and tell the player to go back when they go through a wall that would have taken more than a few tiles to get to.
+
+

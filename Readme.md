@@ -1,5 +1,6 @@
-GIF
-![](https://cdn.discordapp.com/attachments/552308534906454017/997160540570914946/Gif_1218.gif)
+(GIF)
+
+![](https://github.com/bendzz/OutdoorPacmanVR/blob/main/0_WIP/Gif%20(1220).gif)
 
 README
 

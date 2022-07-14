@@ -1,3 +1,6 @@
+GIF
+![](https://cdn.discordapp.com/attachments/552308534906454017/997160540570914946/Gif_1218.gif)
+
 README
 
 Life sized pacman VR! Run around on an open field dodging the ghosts in real life! Grow the map even larger so you really have to sprint away from them, or shrink it down to a board game to play in your living room.

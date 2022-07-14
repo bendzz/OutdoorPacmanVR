@@ -74,13 +74,15 @@ train
 
 TODO
 -IRL walls
--siren background, frightened ghost background
-sounds: Eating ghost, 
+SOUNDS
+packman dead, all dots eaten + no siren
 
+no up tiles
 
 
 -2 Github embedded gifs: A ghost approaching life sized as you back away, and board game sized play
 	-social image https://github.com/bendzz/OutdoorPacmanVR/settings
+-Put MIT license on this and TF GJ games
 
 
 TODO 

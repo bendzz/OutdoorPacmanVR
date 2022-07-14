@@ -41,8 +41,12 @@ public class Ghost : MonoBehaviour
     }
 
     public State state = State.unspawned;
+    State oldState;
+
     [Tooltip("if true the ghosts wander randomly in the ghost house, instead of the up down original animation.")]
     public bool wanderUnspawned = true;
+
+    public AudioSource gotEatenPlayer;
 
     // TODO
     // Ghost
@@ -70,7 +74,7 @@ public class Ghost : MonoBehaviour
 
     //[Tooltip("Ghost color material")]
     Material material;
-    AudioSource audio;
+    AudioSource defaultAudio;
 
     Vector3 startScale;
 
@@ -84,6 +88,7 @@ public class Ghost : MonoBehaviour
     public List<Transform> eyes;
 
     public float bodySpinAngle;
+
 
     // Start is called before the first frame update
     void Start()
@@ -151,17 +156,38 @@ public class Ghost : MonoBehaviour
         SkinnedMeshRenderer renderer = bodyMesh.GetComponent<SkinnedMeshRenderer>();
         material = renderer.material;
 
-        audio = this.GetComponent<AudioSource>();
+        defaultAudio = this.GetComponent<AudioSource>();
 
         //audio.pitch = (4-(float)ghost) / 2;
-        audio.pitch = (4 - (float)ghost) / 4 + .0f;
+        defaultAudio.pitch = (4 - (float)ghost) / 4 + .0f;
         //audio.pitch = ((float)ghost) / 2;
 
     }
 
+
     // Update is called once per frame
     void Update()
     {
+        // audio
+        if (state == State.dead || state == State.frightened)
+            defaultAudio.enabled = false;
+        else
+        {
+            if (!defaultAudio.enabled)
+            {
+                defaultAudio.enabled = true;
+                defaultAudio.Play();
+            }
+        }
+        if (state == State.dead && oldState == State.frightened)
+        {
+            gotEatenPlayer.enabled = true;
+            gotEatenPlayer.Play();
+        } else if (state != State.dead && oldState == State.dead)
+        {
+            gotEatenPlayer.enabled = false;
+        }
+
         Vector2Int pos = Game.worldToNav(transform.position);
         Vector2Int posCenter = Game.worldToNavCenters(transform.position);
 
@@ -219,19 +245,21 @@ public class Ghost : MonoBehaviour
                 int oppositeDirection = (int)direction - 2;
                 if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
                 List<Direction> validDirections = new List<Direction>();
+                //print("validDirections " + validDirections[0]);
+
                 for (int d = 0; d < 4; d++)
                 {
                     if (d == oppositeDirection)
                         continue;
-                    bool traversible = false;
+                    if (currentTile.noGhostUp && d == 0)    // ghosts can't turn upward at 4 intersections
+                        continue;
+                        bool traversible = false;
                     try   // sometimes checks out of bounds tiles
                     {
                         Game.navTile tile = Game.nav(oldPos + directions[d]);
                         if (tile.traversible)
                         {
                             traversible = true;
-                            if (tile.noGhostUp && d == 0)   // ghosts can't turn upward at 4 intersections
-                                traversible = false;
                         }
                         if (state == State.unspawned && wanderUnspawned)
                         {
@@ -488,6 +516,7 @@ public class Ghost : MonoBehaviour
             }
         }
 
+        oldState = state;
     }
 
     public static Vector3 vec23(Vector2Int vec2)

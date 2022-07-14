@@ -42,6 +42,14 @@ public class Game : MonoBehaviour
     public Camera cam;
     public Transform OVRCameraRig;
 
+    public AudioSource levelAudioSource;
+    public AudioClip pacmanSiren;
+    public AudioClip pacmanGhostsFrightened;
+
+    //public AudioClip ghostAudioDefault;
+    //public AudioClip ghostAudioEaten;
+
+
     [Tooltip("Resizing the game board for better play")]
     public Vector3 mapScale = Vector3.one;
     [Tooltip("Offsetting the map to enhance IRL player movement")]
@@ -223,8 +231,10 @@ public class Game : MonoBehaviour
                                 tile.teleporter = true;
                             if (p == Color.green)
                             {
+                                // https://gameinternals.com/understanding-pac-man-ghost-behavior 4 tiles 
                                 tile.noGhostUp = true;
                                 tile.turn = true;
+                                //print("no up tile");
                             }
                             if (p == Color.yellow)
                                 tile.turn = true;
@@ -378,6 +388,26 @@ public class Game : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // background audio
+        // TODO: when you die in game this pauses
+        if (frightened > 0)
+        {
+            if (levelAudioSource.clip != pacmanGhostsFrightened)
+            {
+                levelAudioSource.clip = pacmanGhostsFrightened;
+                levelAudioSource.Play();
+            }
+        }
+        else
+        {
+            if (levelAudioSource.clip != pacmanSiren)
+            {
+                levelAudioSource.clip = pacmanSiren;
+                levelAudioSource.Play();
+            }
+        }
+
+
         if (cam.transform.localPosition != Vector3.zero && !disableEnhancedPlayerMovement)    // to allow moving the character to test
             OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));
 
@@ -438,7 +468,7 @@ public class Game : MonoBehaviour
             if (pacTile.hasItem)
             {
                 pacTile.hasItem = false;
-                print("nommed " + packmanPos + pacTile.isDot);
+                //print("nommed " + packmanPos + pacTile.isDot);
                 GPUInstancing.Bots.bot bot = GPUInstancing.Bots.bots.list[pacTile.dotRef];
 
                 AudioSource player = waka1Player;

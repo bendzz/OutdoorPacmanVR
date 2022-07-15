@@ -25,6 +25,12 @@ CONTROLS
 		-Removes the player movement 2x speed multiplier, as long as it's held.
 		
 		-(Releasing causes the player to jerk over to where they'd normally be)
+		
+	Removing the Gaurdian:
+	
+		-Last I checked the gaurdian couldn't go above maybe 7x7m. Go to Settings, General, Developer, and disable it. 
+		
+		(You can still see the real world behind the game, thanks to passthrough cameras)
 
 NOTES:
 
@@ -35,7 +41,7 @@ NOTES:
 -Oculus Quests only; only tested on a Quest 2.
 
 
-DEVELOPERS
+DEVELOPERS:
 
 Made in unity 2021.1.15f1. 
 

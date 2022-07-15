@@ -203,6 +203,7 @@ MonoBehaviour:
   waka2Player: {fileID: 1854006873}
   cam: {fileID: 1923706541}
   OVRCameraRig: {fileID: 327659349}
+  leftHand: {fileID: 1465882002}
   levelAudioSource: {fileID: 1340548258}
   pacmanSiren: {fileID: 8300000, guid: 88a6cd181bffbc442b170e5a75ac435d, type: 3}
   pacmanGhostsFrightened: {fileID: 8300000, guid: 9c8113d42f7769c4b89944f6f4a99803, type: 3}
@@ -226,6 +227,11 @@ MonoBehaviour:
   victorious: 0
   dotsStarterCount: 0
   dotsEatenCount: 0
+  pausedMovingWorld: 0
+  pausedInitialHandPos: {x: 0, y: 0, z: 0}
+  pausedInitialHandRot: {x: 0, y: 0, z: 0, w: 0}
+  pausedInitialRigPos: {x: 0, y: 0, z: 0}
+  pausedInitialRigRot: {x: 0, y: 0, z: 0, w: 0}
 --- !u!4 &216010504
 Transform:
   m_ObjectHideFlags: 0

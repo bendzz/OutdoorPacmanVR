@@ -41,6 +41,7 @@ public class Game : MonoBehaviour
     [Tooltip("The VR player's head. This movement controls pacman etc")]
     public Camera cam;
     public Transform OVRCameraRig;
+    public Transform leftHand;
 
     public AudioSource levelAudioSource;
     public AudioClip pacmanSiren;
@@ -138,6 +139,15 @@ public class Game : MonoBehaviour
     public int dotsStarterCount;
     public int dotsEatenCount;
 
+    /// <summary>
+    /// Is the player repositioning the world?
+    /// </summary>
+    public bool pausedMovingWorld;
+    // TODO this seems messy; make a "saved initial transform" class..?
+    public Vector3 pausedInitialHandPos;
+    public Quaternion pausedInitialHandRot;
+    public Vector3 pausedInitialRigPos;
+    public Quaternion pausedInitialRigRot;
 
 
     // Start is called before the first frame update
@@ -615,18 +625,41 @@ public class Game : MonoBehaviour
                 OVRCameraRig.localScale = pausedBlinkyDemo.oOVRScale;
             }
 
-            // scale world
+            // scale and move the game world
             if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > .5f)
             {
                 // main hand trigger + joystick up/down scales the world (ie scales your playspace object)
                 float stick = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick).y;
+                Vector3 oldCamPos = cam.transform.position;
                 if (stick > 0)
                     OVRCameraRig.localScale = OVRCameraRig.localScale * (1 + stick * Time.deltaTime);
                 else if (stick < 0)
                     OVRCameraRig.localScale = OVRCameraRig.localScale * (1 + (stick * Time.deltaTime * .5f));
+                // TODO zooming out still moves the map too much. Kinda sucks. This should fix it but doesn't. idk.
+                if (stick != 0)
+                    OVRCameraRig.transform.position -= (cam.transform.position - oldCamPos);
+
+                // left hand scrolls the world around
+                if (!pausedMovingWorld)
+                {
+                    pausedMovingWorld = true;
+                    pausedInitialHandPos = leftHand.transform.localPosition;
+                    pausedInitialHandRot = leftHand.transform.localRotation;
+
+                    //pausedInitialRigPos = OVRCameraRig.position;
+                    pausedInitialRigPos = rigStartPos;
+                    pausedInitialRigRot = OVRCameraRig.rotation;
+                }
+                //OVRCameraRig.position = pausedInitialRigPos + OVRCameraRig.rotation * (-(leftHand.transform.localPosition - pausedInitialHandPos) * 10);
+                rigStartPos = pausedInitialRigPos + OVRCameraRig.rotation * (-(leftHand.transform.localPosition - pausedInitialHandPos) * 20);
+                
+                //OVRCameraRig.rotation = pausedInitialRigRot * (leftHand.transform.localRotation * Quaternion.Inverse(pausedInitialRigRot));
+                OVRCameraRig.rotation = pausedInitialRigRot * Quaternion.Euler(0, -(leftHand.transform.localRotation.eulerAngles.y - pausedInitialHandRot.eulerAngles.y), 0);
+
 
                 paused = true;
-            }
+            } else
+                pausedMovingWorld = false;
         }
 
 

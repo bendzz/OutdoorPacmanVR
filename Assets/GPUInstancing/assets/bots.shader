@@ -235,6 +235,39 @@ Shader "Custom/bots"
             light = light * .9 + .04;
             color.xyz = color.xyz * light;
 
+            // Only show the most powerful ghost light in the frag shader, since these lights are SUPER expensive
+            // TODO clean up this code and, is there a prettier way to do this? The sharp edges are a bit ugly. Maybe 2 lights?
+            float minDis = 100000;
+            int nearestLight = 5;
+            float4 nearestLightPos = (float4)0;
+            float4 vertPos = UnityObjectToClipPos((vecs[0].xyz + vecs[1].xyz + vecs[2].xyz) / 3);
+            vertPos.xy = vertPos.xy / vertPos.w;
+            for (int l = 3; l >= 0; l--) {
+                float4 tempLightPos = UnityObjectToClipPos(ghostPositions[l].xyz);
+                float4 tempLightPos1 = (float4)0;
+                tempLightPos1.xy = tempLightPos.xy / tempLightPos.w;
+                //float dis = length(vertPos - tempLightPos);
+                float dis = length(vertPos - tempLightPos1);
+                if (dis < minDis) {
+                    minDis = dis;
+                    nearestLight = l;
+                    nearestLightPos = tempLightPos;
+                }
+            }
+            nearestLightPos.xy = .5 + (nearestLightPos.xy / nearestLightPos.w) / 2;
+            float4 LightCol = float4(1, 0, 0, 1);
+            if (nearestLight == 1) {
+                LightCol = float4(1, .4, .7, 1);
+            }
+            if (nearestLight == 2)
+            {
+                LightCol = float4(0, 1, 1, 1);
+            }
+            if (nearestLight == 3)
+            {
+                LightCol = float4(.7, .4, 0, 1);
+            }
+
 
             for (v = 2; v >= 0; v--) { 
                 geomOutput gout = (geomOutput)0;
@@ -251,10 +284,12 @@ Shader "Custom/bots"
                 // pacmanLights
 
                 if (bo.alive != -1) {
-                    gout.lightPos0 = UnityObjectToClipPos(ghostPositions[0].xyz);
-                    gout.lightPos1 = UnityObjectToClipPos(ghostPositions[1].xyz);
-                    gout.lightPos2 = UnityObjectToClipPos(ghostPositions[2].xyz);
-                    gout.lightPos3 = UnityObjectToClipPos(ghostPositions[3].xyz);
+                    //gout.lightPos0 = UnityObjectToClipPos(ghostPositions[0].xyz);
+                    //gout.lightPos1 = UnityObjectToClipPos(ghostPositions[1].xyz);
+                    //gout.lightPos2 = UnityObjectToClipPos(ghostPositions[2].xyz);
+                    //gout.lightPos3 = UnityObjectToClipPos(ghostPositions[3].xyz);
+                    gout.lightPos0 = nearestLightPos;
+                    gout.lightPos3 = LightCol;
                 }
 
                 triStream.Append(gout);
@@ -268,50 +303,39 @@ Shader "Custom/bots"
         //col.a = 1;
 
 
-            
-            // cheap relfections
-        float3 ns = normalize(i.normals.xyz);
-        //float3 ls = -normalize(debugInput.xyz);
-        float3 ls = -normalize(float3(1,0,0)); 
-         
-        float3 reflected = ls - 2 * dot(ns, ls) * ns;
-
-        //pixelDiffuse.w = pow(saturate(reflected.z - .2), 6) * .5 * tempMultiplier;
-
-
-        //float2 blob = float2(.5, .4);
-        float2 blob = i.lightPos0.xy;
-
+        // show ghost lights though walls. Very expensive, especially when it used to do all 4.
         float radius = .05;
 
-
-        // TODO these screen space lights are really expensive GPU wise. Maybe only pass the top 2 through..?
         float2 screenUV = (i.pos.xy / _ScreenParams.xy);
         if (AndroidInvertScreenUVs == 0)
             screenUV = float2(screenUV.x, 1 - screenUV.y);    // NOTE! Needs to be enabled on PC but not on Quest 2!
 
-        float4 light = i.lightPos0;
+        //float4 light = i.lightPos0;
 
-        float4 result = (float4)0;
-        float4 gcol = float4(1, 0, 0, 1);
-        for (int g = 0; g < 4; g++) {
-            if (g == 1) {
-                light = i.lightPos1;
-                gcol = float4(1, .4, .7, 1);
-            }
-            if (g == 2) 
-            {
-                light = i.lightPos2;
-                gcol = float4(0, 1, 1, 1);
-            }
-            if (g == 3) 
-            {
-                light = i.lightPos3;
-                gcol = float4(.7, .4, 0, 1);
-            }
-            float2 source = (.5 + (light.xy / light.w) / 2);
-            result += gcol * saturate((radius - length(source - screenUV)) / radius);
-        }
+        //float4 result = (float4)0;
+        //float4 gcol = float4(1, 0, 0, 1);
+        //for (int g = 0; g < 4; g++) {
+        //    if (g == 1) {
+        //        light = i.lightPos1;
+        //        gcol = float4(1, .4, .7, 1);
+        //    }
+        //    if (g == 2) 
+        //    {
+        //        light = i.lightPos2;
+        //        gcol = float4(0, 1, 1, 1);
+        //    }
+        //    if (g == 3) 
+        //    {
+        //        light = i.lightPos3;
+        //        gcol = float4(.7, .4, 0, 1);
+        //    }
+        //    float2 source = (.5 + (light.xy / light.w) / 2);
+
+        float4 gcol = i.lightPos3;
+        float2 source = i.lightPos0.xy;
+        float4 result = gcol * saturate((radius - length(source - screenUV)) / radius);
+        //float4 result = float4(1,1,0,1) * saturate((radius - length(source - screenUV)) / radius);
+        //}
         col += result;
 
 

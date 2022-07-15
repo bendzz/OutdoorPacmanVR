@@ -10,15 +10,15 @@ CONTROLS
 
 	TRIGGERS pause the game:
 
-		-LEFT TRIGGER: 
-		
-			-Minimizes map
+		-RIGHT TRIGGER: 
 			
 			-JOYSTICK up and down to adjust ghost speed (Blinky demonstrates)
 			
-		-RIGHT TRIGGER:
+		-LEFT TRIGGER:
 		
 			-JOYSTICK up and down to scale game board big and small
+			
+			-MOVE OR ROTATE the controller to move the game world. (Kinda janky still but it works)
 			
 	A BUTTON:
 	
@@ -32,8 +32,6 @@ NOTES:
 
 -Yes you can walk through walls. Even if I enforce rules here later I'll make them optional; it's fun =)
 
--(Haven't actually tested this at full scale yet in an outdoor field; use at your own risk. -July 14 '22)
-
 -Oculus Quests only; only tested on a Quest 2.
 
 
@@ -41,4 +39,4 @@ DEVELOPERS
 
 Made in unity 2021.1.15f1. 
 
-The most valuable piece of code is the GPU Instancing system; It allows me to create over 4000 meshes to make the maze walls and dots etc, and to individually animate them, with almost no impact on the quest 2's perf. (The frag shader to draw lights through the walls drops the framerate sometimes though; it's very hacky). Unity's GPU instancing system only gets like 25 fps on the quest meanwhile. It took a while to iron out the bugs so enjoy it!
+The most valuable piece of code is the GPU Instancing system; It allows me to create over 4000 meshes to make the maze walls and dots etc, and to individually animate them, with almost no impact on the quest 2's perf. (The frag shader to draw lights through the walls drops the framerate sometimes though; it's very hacky). Unity's GPU instancing system only gets like 25 fps on the quest meanwhile, way way worse. It took a while to iron out the bugs so enjoy it!

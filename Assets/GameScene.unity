@@ -169,6 +169,7 @@ GameObject:
   - component: {fileID: 216010504}
   - component: {fileID: 216010503}
   - component: {fileID: 216010505}
+  - component: {fileID: 216010506}
   m_Layer: 0
   m_Name: Singletons
   m_TagString: Untagged
@@ -273,6 +274,18 @@ MonoBehaviour:
   - {fileID: 8885864409304601092}
   - {fileID: 4074802807875945057}
   botShader: {fileID: 4800000, guid: 8de1e5b4daca0a44f92352030775a81c, type: 3}
+--- !u!114 &216010506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 216010502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a5bcdaf7361acd4da503533bed1a6eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &244085028 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5937805069398453258, guid: a1d40edb0633b774ca6d38096e3de65e, type: 3}
@@ -500,7 +513,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 49599b6d3488f6b42af6f7b215604299, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.055
+  m_Volume: 0.085
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1512,7 +1525,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 88a6cd181bffbc442b170e5a75ac435d, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.527
   m_Pitch: 1
   Loop: 1
   Mute: 0

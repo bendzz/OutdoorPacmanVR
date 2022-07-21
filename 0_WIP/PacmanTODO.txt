@@ -79,7 +79,9 @@ TODO
 
 -pacman sounds need more reach
 
-
+-Update shader to only pass to frag shader the 2 nearest lights to this pixel, by comparing the 2D screen pos of the first vertex
+	-or only 1?
+	-tint heavy overlaps white?
 
 
 
@@ -89,17 +91,51 @@ TODO
 -Put MIT license on this and TF GJ games
 
 
+
+
 TODO?
+-Make background siren quieter, make death sound louder
+	-Do a pushup to respawn?
+		-
+
 -lower ghost deformation zone for dots, raise it for walls
 -Ghost model that morphs scary as it gets closer
 	-Comes apart in the middle, teeth are shown, eyes shrink
-		
-		
-		
+
+
+
+MIXED REALITY Show Off video:
+https://www.phantomhelp.com/LogViewer/Upload/?id=-1
+	-get CSV
+https://docs.unity3d.com/Manual/VideoPlayer.html
+	-a shader to do the greenscreen work
+	-Or some random website or app to preprocess the vide https://bgrem.deelvin.com/
+	
+TODO:
+	-Record all game data for playback in unity editor
+		-Make it a separate, somewhat generic script for recording/simulating arbitrary game data
+		-Press B on left controller, and it'll turn the hand red to show it's recording
+		-Need ghosts, OVRrig data, game variables like Frightened and Victory for audio.
+			-Ghosts need transform, direction, state, and target
+			-OVRrig need rig, hands and head cam
+	-load and playback the drone paths
+		-Position = longitude/lattitude/height minus starting position
+		-Need to interpolate between each data point.
+			-Linear interpolation will be too jerky, can I do better..? Bezier curves? Quadratic interpolation..?
+	-Video: 
+		-recreate the edge filter for the background video
+		-forground video is on a 3D texture parented to cam, with the Z/Depth adjusted so it's more vertical (look up that shader I made to fill that bus with water)
+-Upload game to Sidequest for easy installation/download, download stats and sidequest publicity
+
+-Change package name in unity/oculus dash
+-Fix the floor height so walls don't warp beneath floor
+	
+	
+	
 TODO LATER:
 -replace audio system with oculus VR high fidelity audio system (or steam's, with their occlusion system?)
 	-(Or just save this for another project)
 -Options to disable the shader colors (at least on the dots so they're more visible)
 -Anti cheat collision detection; pause and tell the player to go back when they go through a wall that would have taken more than a few tiles to get to.
 
-
+-Pushup to respawn? (And reset the ghosts to the house, then turn the music back on and let them respawn once the pushup is done)

@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class Ghost : MonoBehaviour
 {
     /// <summary>
     /// Red, pink, blue, orange
     /// </summary>
+     [System.Serializable]
     public enum Name
     {
         blinky,

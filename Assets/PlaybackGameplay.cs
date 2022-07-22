@@ -27,52 +27,137 @@ public class PlaybackGameplay : MonoBehaviour
     /// </summary>
     public class Clip
     {
+        public const string propertyString = "Property=";
+        public const string frameString = "F=";
+
         public string name;
-        //public List<AnimatedObject> objects;
         /// <summary>
         /// Note: The order of this has to stay constant during the game- No removing properties. 
         /// These indices are used for matching frameData to their property during saving/loading
         /// </summary>
         public List<AnimatedProperty> animatedProperties;
-        //public Dictionary<int, AnimatedProperty> animatedProperties;
 
         public Clip(string _name)
         {
             name = _name;
-            //objects = new List<AnimatedObject>();
             animatedProperties = new List<AnimatedProperty>();
-            //animatedProperties = new Dictionary<int, AnimatedProperty>();
         }
 
-        public AnimatedProperty addProperty(object obj)
+        public AnimatedProperty addProperty(object obj, GameObject gameObject)
         {
-            AnimatedProperty property = new AnimatedProperty(obj, this);
-            //animatedProperties.Add(property);
-            //animatedProperties.Add(property);
+            AnimatedProperty property = new AnimatedProperty(obj, gameObject, this);
             return property;
+        }
+
+        public static string GetFilePath(string _name)
+        {
+            return Application.persistentDataPath + "/Clip_" + _name + ".txt";
+        }
+
+        /// <summary>
+        /// Records a frame to all contained properties
+        /// </summary>
+        public void recordFrame(float time)
+        {
+            foreach(AnimatedProperty property in animatedProperties)
+            {
+                property.addNewFrame(time);
+            }
         }
 
         public void saveClip()
         {
+            string filePath = GetFilePath(name);
+
+            File.WriteAllText(filePath, "");  // overwrite file
+
+            using (StreamWriter sw = File.AppendText(filePath))
+            {
+                foreach (AnimatedProperty property in animatedProperties)
+                {
+                    sw.WriteLine(propertyString + property.ToJson());
+                }
+                foreach (AnimatedProperty property in animatedProperties)
+                {
+                    foreach (FrameData frame in property.frames)
+                    {
+                        sw.WriteLine(frameString + frame.ToJson());
+                    }
+                }
+
+            }
         }
-        public void loadClip()
+        public static Clip loadClip(string _name)
         {
+            Clip newClip = new Clip(_name);
+            newClip.name = _name;
+
+            string filePath = GetFilePath(_name);
+
+            foreach (string line in File.ReadLines(filePath))
+            {
+                //print("line " + line);
+                int i0 = line.IndexOf("=");
+                //print("i0 " + i0);
+                string type = line.Substring(0, i0 + 1);
+                string trimmedLine = line.Substring(i0 + 1);
+                //print("trimmed line " + trimmedLine);
+                if (type.Contains(propertyString))
+                {
+                    //newClip.addProperty()
+                    //AnimatedProperty property = AnimatedProperty.FromJson(line);
+                    AnimatedProperty property = AnimatedProperty.FromJson(trimmedLine);
+                    property.preLoadedProperty();
+                    newClip.animatedProperties.Add(property);
+                    //print("property type " + property.frameType);
+                }
+                else if (type.Contains(frameString))
+                {
+                    // get frameType
+                    string IDSearch = "\"ID\":";
+                    int s0 = line.IndexOf(IDSearch) + IDSearch.Length;
+                    //print("s0 " + s0);
+                    int s1 = line.IndexOf(",", s0);
+                    string IDs = line.Substring(s0, s1 - s0);
+                    //print("IDs " + IDs);
+                    int ID = int.Parse(IDs);
+                    //print("ID " + ID);
+
+                    //AnimatedProperty property = newClip.animatedProperties[frame.ID];
+                    AnimatedProperty property = newClip.animatedProperties[ID];
+                    string frameTypeS = property.frameType;
+
+                    System.Type frameType = System.Type.GetType(frameTypeS);
+                    //print("frameType " + frameType);
+
+                    //FrameData frame = JsonUtility.FromJson<FrameData>(trimmedLine);
+                    //FrameData frame = JsonUtility.FromJson<typeof( frameType)>(trimmedLine);
+                    //FrameData frame = JsonUtility.FromJson<TransformFrame>(trimmedLine);    // TEMP
+                    FrameData frame = (FrameData)JsonUtility.FromJson(trimmedLine, frameType);
+
+                    frame.setProperty(property);
+
+                    property.frames.Add(frame);
+                }
+                else
+                    Debug.LogError("Couldn't determine type of file line " + line);
+            }
+
+            return newClip;
+        }
+        public void debugPrintClip()
+        {
+            foreach (AnimatedProperty property in animatedProperties)
+            {
+                print("PROPERTY " + property.ToJson());
+                foreach (FrameData frame in property.frames)
+                {
+                    print("FRAME " + frame.ToJson());
+                }
+            }
         }
     }
 
-    //public class AnimatedObject
-    //{
-    //    /// <summary>
-    //    /// The link to the object in question. Set manually or via scene hierarchy or other methods, stored at the start of the JSON file.
-    //    /// </summary>
-    //    public object obj;
-    //    public List<AnimatedProperty> animatedProperties;
-
-    //    public AnimatedObject(object _obj)
-    //    {
-    //        obj = _obj;
-    //        animatedProperties = new List<AnimatedProperty>();
-    //    }
 
     //}
     /// <summary>
@@ -100,8 +185,17 @@ public class PlaybackGameplay : MonoBehaviour
         //public System.Type FrameType;
         public System.Type Type;
         public string type;
+        /// <summary>
+        /// What FrameData type exactly loaded frames need to be casted into
+        /// </summary>
+        public string frameType;
 
-
+        /// <summary>
+        /// Some way for the data to be linked to an object when loaded back into unity. 
+        /// Can be script specific or from the scene hierarchy or etc. Default is the object name
+        /// </summary>
+        public string gameObjectRef;
+        public GameObject gameObject;   // TODO make this not record to Json; private, with getters/setters?
         /// <summary>
         /// For saving and restoring Reflection gathered FieldInfo, PropertyInfo, methods etc, so those variables/methods can be recorded and animated
         /// </summary>
@@ -109,16 +203,20 @@ public class PlaybackGameplay : MonoBehaviour
 
         public List<FrameData> frames;
 
+
         //public AnimatedProperty(object _property, System.Type _FrameType)
         /// <summary>
         /// 
         /// </summary>
         /// <param name="_obj">The property to be animated</param>
-        public AnimatedProperty(object _obj, Clip _clip)
+        public AnimatedProperty(object _obj, GameObject _gameObject, Clip _clip)
         {
             obj = _obj;
             clip = _clip;
-            //FrameType = _FrameType; // TODO automate this?
+
+            gameObject = _gameObject;
+            gameObjectRef = gameObject.name;
+
 
             _clip.animatedProperties.Add(this);
             ID = _clip.animatedProperties.Count - 1;
@@ -131,12 +229,28 @@ public class PlaybackGameplay : MonoBehaviour
         }
 
         /// <summary>
+        /// Only used for loading clips from a file. The game object references still need to be restored.
+        /// </summary>
+        //public AnimatedProperty(string _gameObjectRef, string _type, string _propertyReference,  Clip _clip)
+        //{
+        //    gameObjectRef = _gameObjectRef;
+        //    type = _type;
+        //    propertyReference = _propertyReference;
+        //    clip = _clip;
+
+
+
+        //    frames = new List<FrameData>();
+        //}
+
+
+        /// <summary>
         /// Factory to make the correct frameData type
         /// </summary>
         public void addNewFrame(float time)
         {
             FrameData frame = null;
-            //frame = new (FrameType)(ID, this);  // TODO how?
+            //frame = new (FrameType)(ID, this);  // TODO how? Automated type setup?
 
             if (obj is Transform)
             {
@@ -146,6 +260,26 @@ public class PlaybackGameplay : MonoBehaviour
                 Debug.LogError("unknown frameData object attempting to be created for: " + obj);
 
             frames.Add(frame);
+            if (frameType == null)
+            {
+                frameType = frame.GetType().ToString();
+            }
+        }
+
+        public string ToJson()
+        {
+            return JsonUtility.ToJson(this);
+        }
+        public static AnimatedProperty FromJson(string json)
+        {
+            return (AnimatedProperty)JsonUtility.FromJson(json, typeof(AnimatedProperty));
+        }
+        /// <summary>
+        /// When a property is loaded from a file via Json, this sets up some basics. Doesn't restore gameobject refs by default though!
+        /// </summary>
+        public void preLoadedProperty()
+        {
+            frames = new List<FrameData>();
         }
     }
 
@@ -153,9 +287,9 @@ public class PlaybackGameplay : MonoBehaviour
     public abstract class FrameData
     {
         //public string type; // TODO pretty wasteful having this in every frame
-        public float time;
         public int ID;
-        private AnimatedProperty property;
+        public float time;
+        protected AnimatedProperty property;
         //public System.Type type;
 
         //public abstract void record();
@@ -182,12 +316,17 @@ public class PlaybackGameplay : MonoBehaviour
         {
             JsonUtility.FromJsonOverwrite(json, this);
         }
+
+        public void setProperty(AnimatedProperty _property)
+        {
+            property = _property;
+        }
     }
     //[System.Serializable]
     public class TransformFrame : FrameData
     {
         //public Transform obj;
-        public AnimatedProperty property;
+        //public AnimatedProperty property;
 
         public Vector3 lPos;
         public Vector3 lScal;
@@ -278,6 +417,7 @@ public class PlaybackGameplay : MonoBehaviour
     }
     */
 
+    int frameCount = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -285,62 +425,67 @@ public class PlaybackGameplay : MonoBehaviour
 
         //testReflection();
 
-        clip = new Clip("test pacman clip");
-        AnimatedProperty property = clip.addProperty(transform);
+        //clip = new Clip("test pacman clip");
+        //AnimatedProperty property1 = clip.addProperty(transform, gameObject);
 
-        property.addNewFrame(Time.time);
-        property.addNewFrame(666);
+        //property1.addNewFrame(Time.time);
+        //property1.addNewFrame(666);
 
-        print("JSON " + property.frames[0].ToJson());
-        print("JSON " + property.frames[1].ToJson());
+        ////print("JSON " + property.frames[0].ToJson());
+        ////print("JSON " + property.frames[1].ToJson());
 
-        AnimatedProperty property2 = clip.addProperty(transforms[0]);
-        property2.addNewFrame(Time.time);
-        print("JSON 2 " + property2.frames[0].ToJson());
+        //AnimatedProperty property2 = clip.addProperty(transforms[0], transforms[0].gameObject);
+        //property2.addNewFrame(Time.time);
+        ////print("JSON 2 " + property2.frames[0].ToJson());
+
+        //clip.saveClip();
+
+
+        //clip.loadClip("test pacman clip");
+        //clip = Clip.loadClip("test pacman clip");
+
+        //clip.debugPrintClip();
+
+
+        //clip = new Clip("test pacman clip");
+        //foreach(Transform tf in transforms)
+        //{
+        //    clip.addProperty(tf, tf.gameObject);
+        //}
+
+
+        clip = Clip.loadClip("test pacman clip");
+
+        int index = 0;
+        foreach (Transform tf in transforms)
+        {
+            //clip.addProperty(tf, tf.gameObject);
+            clip.animatedProperties[index].obj = tf;
+            //print("set property " + index + " of " + clip.animatedProperties[index].obj);
+            index++;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-         
+        //clip.recordFrame(Time.realtimeSinceStartup);
+
+        foreach(AnimatedProperty property in clip.animatedProperties)
+        {
+            //print("property " + property.obj);
+            property.frames[frameCount].playBack();
+        }
+        frameCount++;
+        if (frameCount >= 450)
+            frameCount = 0;
     }
 
-    //public void loadFrames()
-    //{
-    //    frames = new List<FrameData>();
-
-    //    string filePath = Application.persistentDataPath + "/savedFrames" + "test1" + ".save";
-
-    //    foreach (string line in File.ReadLines(filePath))
-    //    {
-    //        //System.Console.WriteLine(line);
-    //        //counter++;
-    //        // get type
-    //        int i0 = line.IndexOf("\"type\"");
-    //        int i1 = line.IndexOf(",", i0);
-    //        //System.Type type = (System.Type)line.Substring(i0, i1 - i0);
-    //        System.Type type = System.Type.GetType( line.Substring(i0, i1 - i0));
-
-    //        frames.Add((FrameData)JsonUtility.FromJson(line, type));
-    //        //frames.Add(System.Convert.ChangeType(JsonUtility.FromJson(line, type), type);
-    //    }
-    //}
-
-    //public void saveFrames()
-    //{
-    //    string filePath = Application.persistentDataPath + "/savedFrames" + "test1" + ".save";
-
-    //    File.WriteAllText(filePath, "");  // overwrite file
-
-    //    using (StreamWriter sw = File.AppendText(filePath))
-    //    {
-    //        //sw.WriteLine("This is the new text");
-    //        foreach(FrameData frame in frames)
-    //        {
-    //            sw.WriteLine(frame.ToJson());
-    //        }
-    //    }
-    //}
+    private void OnDestroy()
+    {
+        //print("Saving animation data");
+        //clip.saveClip();
+    }
 
     public void testReflection()
     {

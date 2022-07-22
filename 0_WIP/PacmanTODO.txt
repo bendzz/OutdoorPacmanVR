@@ -130,6 +130,9 @@ TODO:
 -Change package name in unity/oculus dash
 -Fix the floor height so walls don't warp beneath floor
 	
+-make clips rename themselves if there's already one there, instead of overwriting
+	
+	
 	
 	
 TODO LATER:

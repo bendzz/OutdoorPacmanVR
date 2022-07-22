@@ -97,7 +97,8 @@ public class OVRPassthroughLayerEditor : Editor {
 
 		if (layer.colorMapEditorType == ColorMapEditorType.GrayscaleToColor)
 		{
-			layer.colorMapEditorGradient = EditorGUILayout.GradientField("Colorize", layer.colorMapEditorGradient);
+			// Disabled this because it was filling my console with 'didinsert assert' fails
+			//layer.colorMapEditorGradient = EditorGUILayout.GradientField("Colorize", layer.colorMapEditorGradient);
 		}
 
 		if (GUI.changed)

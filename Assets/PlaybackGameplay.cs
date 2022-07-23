@@ -151,7 +151,6 @@ public class PlaybackGameplay : MonoBehaviour
                     property.preLoadedProperty();
 
                     property.frameType = System.Type.GetType(property.frameTypeString);
-
                     property.type = System.Type.GetType(property.typeString); // not working?
 
 
@@ -214,13 +213,8 @@ public class PlaybackGameplay : MonoBehaviour
         /// </summary>
         public int ID;
 
-        /// <summary>
-        /// The type of variable or Reflection reference being used
-        /// </summary>
-        public System.Type type;
-        public string typeString;
 
-        //public string objString;  // JSON reference to object..? 
+
         /// <summary>
         /// In game reference to the variable/method/object etc to be recorded or animated
         /// </summary>
@@ -229,6 +223,13 @@ public class PlaybackGameplay : MonoBehaviour
         /// In case the Json fails to convert the obj into string
         /// </summary>
         public string objString;
+
+
+        /// <summary>
+        /// The type of variable or Reflection reference being used
+        /// </summary>
+        public System.Type type;
+        public string typeString;
 
 
         /// <summary>
@@ -350,25 +351,16 @@ public class PlaybackGameplay : MonoBehaviour
         /// <param name="parameters">List of parameters, in order, to match to the function overload</param>
         /// <param name="_clip">parent clip</param>
         public AnimatedProperty(Component script, string methodName, object[] parameters, Clip _clip)
-        //public AnimatedProperty(Object script, string methodName, object[] parameters, Clip _clip)
         {
-            //startConstructor(script, script.gameObject, _clip);
-
-
-            //bool foundMethod = false;
             obj = getMethod(script, methodName, parameters);
 
-
-            //if (!foundMethod)
             if (obj == null)
                 Debug.LogError("ERROR: Unable to find method " + methodName + " with " + parameters.Length + " parameters in script " + script);
 
 
-            //startConstructor(obj, ((Component)script).gameObject, _clip);
             startConstructor(obj, script.gameObject, _clip);
 
             animatedComponent = script;
-            //animatedComponentString = JsonUtility.ToJson(animatedComponent);    // ToString()?
             animatedComponentString = script.ToString();    // ToString()?
 
             finishConstructor();
@@ -385,7 +377,6 @@ public class PlaybackGameplay : MonoBehaviour
                 if (!methodName.Equals(method.Name))
                     continue;
 
-                //print("method " + method);
                 int pi = 0;
                 bool match = true;
                 foreach (ParameterInfo parameter in method.GetParameters())
@@ -397,12 +388,7 @@ public class PlaybackGameplay : MonoBehaviour
                 }
                 if (match)
                 {
-                    //foundMethod = true;
-
                     result = method;
-
-                    //print("Method found! " + method);
-                    //method.Invoke(script, parameters.ToArray());   // TODO: .ToArray causes garbage collection
                     break;
                 }
             }
@@ -429,11 +415,6 @@ public class PlaybackGameplay : MonoBehaviour
                 {
                     animatedComponent = component;
 
-                    //print("type " + type);
-                    //print(typeof(PropertyInfo));
-                    //print(typeof(FieldInfo));
-                    //print(typeof(FieldInfo).ToString());
-                    // set property, field, method links
                     //if (type == typeof(PropertyInfo))
                     if (typeString.Equals("System.Reflection.MonoProperty"))    // This is probably really slow but I can't get the type comparison to work >__>
                     {
@@ -466,8 +447,6 @@ public class PlaybackGameplay : MonoBehaviour
                     //else if (type == typeof(MethodInfo))
                     else if (typeString.Equals("System.Reflection.MonoMethod"))
                     {
-                        //obj = getMethod(component, "objString", parameters);
-
                         foreach (MethodInfo method in component.GetType().GetRuntimeMethods())
                         {
                             if (method.ToString().Equals(objString))
@@ -476,29 +455,6 @@ public class PlaybackGameplay : MonoBehaviour
                                 break;
                             }
 
-                            //if (!methodName.Equals(method.Name))
-                            //    continue;
-
-                            ////print("method " + method);
-                            //int pi = 0;
-                            //bool match = true;
-                            //foreach (ParameterInfo parameter in method.GetParameters())
-                            //{
-                            //    if (parameter.ParameterType != parameters[pi].GetType())
-                            //        match = false;
-
-                            //    pi++;
-                            //}
-                            //if (match)
-                            //{
-                            //    //foundMethod = true;
-
-                            //    result = method;
-
-                            //    //print("Method found! " + method);
-                            //    //method.Invoke(script, parameters.ToArray());   // TODO: .ToArray causes garbage collection
-                            //    break;
-                            //}
                         }
                     }
 
@@ -546,7 +502,6 @@ public class PlaybackGameplay : MonoBehaviour
         {
             FrameData frame = new MethodFrame(methodParameters, this, time);
             frames.Add(frame);
-            //print("method frame added");
             
             if (frameTypeString == null)
             {
@@ -734,12 +689,7 @@ public class PlaybackGameplay : MonoBehaviour
         /// <summary>
         /// "parameterLength"
         /// </summary>
-        //public int pl;
-        //public MethodInfo method;
         public object[] parameters;
-        //public List<object> parameters1;
-        //public JsonableListWrapper<object> lis;
-        //public object param;
         /// <summary>
         /// "paramtersString"
         /// </summary>
@@ -748,57 +698,11 @@ public class PlaybackGameplay : MonoBehaviour
         public MethodFrame(object[] _parameters, AnimatedProperty _property, float _time) : base(_time, _property)
         {
             parameters = _parameters;
-            //pl = parameters.Length;
-            //print("adding paramters " + _parameters[0] + " " + _parameters[1]);
-            ////foreach(object parameter in parameters)
-            ////{
-            ////    //ps += JsonUtility.ToJson(parameter);    // idk why this returns {}
-            ////    object testObj = "testest";
-            ////    ps += JsonUtility.ToJson("tesss") + "tt";
-            ////    ps += JsonUtility.ToJson(242424) + "tt";
-            ////    //ps += parameter.ToString() + "tt";
-
-            ////    print(JsonUtility.ToJson((object)_time));
-            ////    print(JsonUtility.ToJson(this));
-            ////    print(JsonUtility.ToJson((object)parameter));
-            ////}
-            //////ps = JsonUtility.ToJson(parameters);
-            ////ps = JsonUtility.ToJson("teetafsafdad");
-            ////ps = JsonUtility.ToJson(_time);
-
-            ////ps = JsonUtility.ToJson(parameters.ToList<object>());
-
-            //parameters1 = parameters.ToList<object>();
-
-            //print(JsonUtility.ToJson(this));
-            //print(JsonUtility.ToJson(parameters1));
-
-            ////print(_parameters.ToList<object>() + "  " + _parameters.ToList<object>()[0]);
-            ////JsonableListWrapper<object> lis = new JsonableListWrapper<object>(_parameters.ToList<object>());
-            //lis = new JsonableListWrapper<object>(parameters1);
-
-            //print(lis.list[0]);
-            //print(JsonUtility.ToJson(lis));
-
-            ////ps = JsonUtility.ToJson(lis);
-
-            //param = parameters[0];
-            //print(JsonUtility.ToJson(param));
-
-            //print(JsonUtility.ToJson(this));
-
-
             ps = JsonConvert.SerializeObject(parameters);
-            print("ps " + ps);
-
-            //print("newton " + testt);
-
-            //object[] tess = JsonConvert.DeserializeObject<object[]>(testt);
         }
 
         public override void playBack()
         {
-            //((MethodInfo)property.obj).Invoke(property.gameObject, parameters);
             ((MethodInfo)property.obj).Invoke(property.animatedComponent, parameters);
         }
 
@@ -810,15 +714,11 @@ public class PlaybackGameplay : MonoBehaviour
             for (int i = 0; i < parameters.Length; i++)
             {
                 if (parameters[i].GetType() == typeof(System.Int64))
-                {
-                    //print("type " + parameters[i].GetType());
-                    //parameters[i] = (System.Int32)parameters[i];
                     parameters[i] = System.Convert.ChangeType(parameters[i], typeof(int));
-                    
-                }
             }
         }
     }
+
 
 
 
@@ -842,71 +742,6 @@ public class PlaybackGameplay : MonoBehaviour
 
         setTestPlayback();
 
-        //testParam(ghosts[0].testFunction);
-
-        //string methodName = "testFunction";
-        ////List<string> parameters
-        ////List<object> parameters;
-        ////parameters = new List<object>();
-        ////parameters.Add("test string to be called by function!");
-        ////parameters.Add(42);
-        //object[] parameters = { "test string to be called by function!", 42 };
-        //object obj = ghosts[0];
-        ////print("METHODS " + obj.GetType().GetRuntimeMethods());
-        //////print("METHODS2 " + obj.GetType().get);
-        ////foreach (MethodInfo method in obj.GetType().GetRuntimeMethods())
-        ////{
-        ////    if (!methodName.Equals(method.Name))
-        ////        continue;
-
-        ////    print("method " + method);
-        ////    int pi = 0;
-        ////    bool match = true;
-        ////    foreach (ParameterInfo parameter in method.GetParameters())
-        ////    {
-        ////        //print("parameter " + parameter + " type " + parameter.ParameterType + " attributes " + parameter.Attributes);
-        ////        //print("parameter " + parameter + " type " + parameter.ParameterType + " name " + parameter.Name);
-        ////        //print("parameter " + parameter);
-
-        ////        if (parameter.ParameterType != parameters[pi].GetType())
-        ////            match = false;
-
-        ////        pi++;
-        ////    }
-        ////    if (match)
-        ////    {
-        ////        print("Method found!");
-        ////        method.Invoke(obj, parameters.ToArray());   // TODO: .ToArray causes garbage collection
-        ////        break;
-        ////    }
-        ////}
-        ///
-
-        //List<object> paras = new List<object>();
-        //List<string> paras = new List<string>();
-        //paras.Add("blah");
-        //paras.Add("blah");
-
-        //wrap wt = new wrap("tatatatat");
-
-        //object[] parameters = { "test string to be called by function!", 42 };
-        ////JsonableListWrapper<Ghost> lis = new JsonableListWrapper<Ghost>(ghosts);
-        ////JsonableListWrapper<object> lis = new JsonableListWrapper<object>(parameters.ToList());
-        ////JsonableListWrapper<object> lis = new JsonableListWrapper<object>(paras);
-        ////JsonableListWrapper<string> lis = new JsonableListWrapper<string>(paras);
-        //// print("test " + JsonUtility.ToJson(lis));
-        ////print("test " + JsonUtility.ToJson(wt));
-
-        //string testt = JsonConvert.SerializeObject(parameters);
-        //print("newton " + testt);
-
-        ////object tess = JsonConvert.DeserializeObject(testt);
-        //object[] tess = JsonConvert.DeserializeObject<object[]>(testt);
-
-        //print(tess);
-        //print(((object[])tess)[0]);
-        //print(((object[])tess)[1]);
-
         if (recordingNotPlayback)
             clip = setUpRecording(clipName);
         else
@@ -914,20 +749,8 @@ public class PlaybackGameplay : MonoBehaviour
 
     }
 
-    [System.Serializable]
-    public class wrap
-    {
-        public object obj;
-        public wrap(object _obj)
-        {
-            obj = _obj;
-        }
-    }
 
-    //public void testParam(method obj)
-    //{
-    //    print("testParam " + obj);
-    //}
+
 
 
     /// <summary>
@@ -935,10 +758,7 @@ public class PlaybackGameplay : MonoBehaviour
     /// </summary>
     public void setTestRecording()
     {
-        //print("test type " + (ghosts[0] is GameObject));
         testClip = new Clip("Pacman Test Ghost");
-        //testClip.animatedProperties.Add(new AnimatedProperty(ghosts[0], ghosts[0].direction, ghosts[0].gameObject, testClip));
-        //testClip.animatedProperties.Add(new AnimatedProperty(ghosts[0].transform, ghosts[0].transform.position, ghosts[0].gameObject, testClip));
 
         new AnimatedProperty(ghosts[0], ghosts[0].direction, ghosts[0].gameObject, testClip);
         new AnimatedProperty(ghosts[0].transform, ghosts[0].transform.position, ghosts[0].gameObject, testClip);

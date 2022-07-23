@@ -663,7 +663,8 @@ public class PlaybackGameplay : MonoBehaviour
             {
                 data = ((PropertyInfo)property.obj).GetValue(property.animatedComponent);
             }
-            ds = JsonUtility.ToJson(data);  // idk why this works, while converting the whole object leaves out the data part, but it works.
+            //ds = JsonUtility.ToJson(data);  // idk why this works, while converting the whole object leaves out the data part, but it works.
+            ds = JsonConvert.SerializeObject(data, Formatting.None, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });   // otherwise it throws a "self referencing loop detected" exception and dies. Unity Json didn't do this >__>
         }
 
         public override void playBack() 
@@ -683,12 +684,14 @@ public class PlaybackGameplay : MonoBehaviour
             if (property.obj is FieldInfo)
             {
                 if (data == null)
-                    data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
+                    //data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
+                    data = JsonConvert.DeserializeObject(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
             }
             else if (property.obj is PropertyInfo)
             {
                 if (data == null)
-                    data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
+                    //data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
+                    data = JsonConvert.DeserializeObject(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
             }
         }
     }
@@ -826,7 +829,11 @@ public class PlaybackGameplay : MonoBehaviour
     }
     public Clip setUpPlayback(string clipName)
     {
+        float startTime = Time.realtimeSinceStartup;
+        print("Starting loading");
         Clip newClip = Clip.loadClip(clipName);
+        print("Clip generation time " + (Time.realtimeSinceStartup - startTime).ToString("F6"));
+        startTime = Time.realtimeSinceStartup;
 
         int i = 0;
         foreach (Transform tf in transforms)
@@ -843,10 +850,9 @@ public class PlaybackGameplay : MonoBehaviour
             newClip.animatedProperties[i++].linkLoadedPropertyToObject(ghost.gameObject);
         }
 
-        print("i " + i);
         newClip.animatedProperties[i++].linkLoadedPropertyToObject(Game.instance.gameObject);
         newClip.animatedProperties[i++].linkLoadedPropertyToObject(Game.instance.gameObject);
-        print("i " + i);
+        print("property convertion time " + (Time.realtimeSinceStartup - startTime).ToString("F6"));
 
         return newClip;
     }
@@ -889,8 +895,8 @@ public class PlaybackGameplay : MonoBehaviour
                 }
                 frameCount++;
                 //if (frameCount >= 450)
-                if (frameCount >= 1600)
-                    frameCount = 0;
+                //if (frameCount >= 1600)
+                //    frameCount = 0;
             }
         }
     }

@@ -134,8 +134,9 @@ TODO:
 TODO
 	-make clips rename themselves if there's already one there, instead of overwriting
 	-Tomorrow I need to have it select the correct frame based on time
-	-test my idea of generic variable recording and playback with the ghost scripts
-	
+-Need base object reference (script) and direct property value/ref
+-The "paused" bool and ghost spin float are blank... That damn unity Json tool again... 
+	-I'll try swapping it out here and there tomorrow
 	
 	
 TODO LATER:

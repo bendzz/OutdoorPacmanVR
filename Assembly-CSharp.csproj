@@ -47,13 +47,10 @@
   <PropertyGroup>
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <UnityProjectGenerator>Package</UnityProjectGenerator>
-    <UnityProjectGeneratorVersion>2.0.9</UnityProjectGeneratorVersion>
+    <UnityProjectGeneratorVersion>2.0.16</UnityProjectGeneratorVersion>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>Android:13</UnityBuildTarget>
     <UnityVersion>2021.1.15f1</UnityVersion>
-  </PropertyGroup>
-  <PropertyGroup>
-    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
@@ -94,6 +91,7 @@
     <Compile Include="Assets\Oculus\SampleFramework\Usage\SpatialAnchor\Scripts\SpatialAnchorSession.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Core\Locomotion\Scripts\TeleportTransitionWarp.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Core\Video\Scripts\VectorUtil.cs" />
+    <Compile Include="Assets\PlaybackGameplay.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Core\DistanceGrab\Scripts\PauseOnInputLoss.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Core\HandsInteraction\Scripts\InteractableToolsCreator.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Core\DebugUI\Scripts\DebugUIBuilder.cs" />
@@ -185,7 +183,6 @@
     <Compile Include="Assets\Oculus\SampleFramework\Usage\SpatialAnchor\Scripts\AnchorUIManager.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\Passthrough\Scripts\SelectivePassthroughExperience.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\HandsTrainExample\Scripts\TrackSegment.cs" />
-    <Compile Include="Assets\PlaybackGameplay.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Oculus\SampleFramework\Usage\HandsTrainExample\Shaders\XingLightShader.shader" />
@@ -887,6 +884,10 @@
       <Project>{6B4EA18A-8B9D-2038-113F-C7932AF94EC5}</Project>
       <Name>Oculus.VR.Editor</Name>
     </ProjectReference>
+    <ProjectReference Include="Oculus.Interaction.Samples.Editor.csproj">
+      <Project>{F6FA1D59-3175-515E-A897-519E81E60D05}</Project>
+      <Name>Oculus.Interaction.Samples.Editor</Name>
+    </ProjectReference>
     <ProjectReference Include="Oculus.Interaction.Editor.csproj">
       <Project>{25B4BD9B-D755-9B48-0A04-35ABFCD4C001}</Project>
       <Name>Oculus.Interaction.Editor</Name>
@@ -951,6 +952,10 @@
       <Project>{59B8589E-CE0B-6F40-B6DD-EAC636793E06}</Project>
       <Name>Oculus.AudioManager.Audio.Editor</Name>
     </ProjectReference>
+    <ProjectReference Include="Oculus.Platform.csproj">
+      <Project>{66F77124-AA8B-38F6-DC21-3AD2C7EED903}</Project>
+      <Name>Oculus.Platform</Name>
+    </ProjectReference>
     <ProjectReference Include="Oculus.Spatializer.Editor.csproj">
       <Project>{3DC15CD4-CE16-CACD-C308-001022FBE81D}</Project>
       <Name>Oculus.Spatializer.Editor</Name>
@@ -959,9 +964,9 @@
       <Project>{A84DEEE7-7074-B083-9A3E-ED9030AB32B8}</Project>
       <Name>Oculus.LipSync.Editor</Name>
     </ProjectReference>
-    <ProjectReference Include="Oculus.Platform.csproj">
-      <Project>{66F77124-AA8B-38F6-DC21-3AD2C7EED903}</Project>
-      <Name>Oculus.Platform</Name>
+    <ProjectReference Include="Facebook.Wit.TTS.Samples.csproj">
+      <Project>{D97BA13E-502C-3607-C681-40417DC5AD80}</Project>
+      <Name>Facebook.Wit.TTS.Samples</Name>
     </ProjectReference>
     <ProjectReference Include="Oculus.LipSync.csproj">
       <Project>{6F9A5BC4-715B-7E58-045C-93B806DDBA89}</Project>
@@ -970,6 +975,14 @@
     <ProjectReference Include="VoiceSDK.Runtime.csproj">
       <Project>{D4BD7AD3-3DC7-F18C-53A0-3749A1AD36C0}</Project>
       <Name>VoiceSDK.Runtime</Name>
+    </ProjectReference>
+    <ProjectReference Include="Facebook.Wit.TTS.csproj">
+      <Project>{A90D489F-0200-9B9A-F3EC-1E8167A3C7E0}</Project>
+      <Name>Facebook.Wit.TTS</Name>
+    </ProjectReference>
+    <ProjectReference Include="Facebook.Wit.TTS.Editor.csproj">
+      <Project>{5B4C7D6D-EAD5-9159-37E9-7B5415E2CD44}</Project>
+      <Name>Facebook.Wit.TTS.Editor</Name>
     </ProjectReference>
     <ProjectReference Include="Oculus.Interaction.Samples.csproj">
       <Project>{8EE21AC0-4457-CC41-7233-32D670C25E30}</Project>

@@ -218,7 +218,7 @@ MonoBehaviour:
   - {fileID: 244085029}
   - {fileID: 796741952}
   - {fileID: 1810339347}
-  ghostSpeedDefault: 6
+  ghostSpeedDefault: 3
   level: 0
   frightened: 0
   timer: 0

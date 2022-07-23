@@ -218,7 +218,7 @@ MonoBehaviour:
   - {fileID: 244085029}
   - {fileID: 796741952}
   - {fileID: 1810339347}
-  ghostSpeedDefault: 3
+  ghostSpeedDefault: 6
   level: 0
   frightened: 0
   timer: 0
@@ -286,6 +286,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a5bcdaf7361acd4da503533bed1a6eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  activelyRecordingOrPlaying: 1
+  recordingNotPlayback: 0
   transforms:
   - {fileID: 327659349}
   - {fileID: 1923706540}

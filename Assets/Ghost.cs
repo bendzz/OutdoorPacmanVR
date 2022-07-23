@@ -81,9 +81,9 @@ public class Ghost : MonoBehaviour
     Vector3 startScale;
 
     /// <summary>
-    /// What the ghost is currently aiming at
+    /// What the ghost is currently aiming at. (Dynamically set every frame)
     /// </summary>
-    Vector3 target;
+    public Vector3 target;
 
     public Transform bodyMesh;
     public Transform body;

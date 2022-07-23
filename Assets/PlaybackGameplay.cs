@@ -64,6 +64,12 @@ public class PlaybackGameplay : MonoBehaviour
             animatedProperties = new List<AnimatedProperty>();
         }
 
+        /// <summary>
+        /// Simple; only handles transforms atm. TODO. Other properties have to be spawned with the AnimationProperty constructor. (They automatically add themselves to the clip, fyi)
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="gameObject"></param>
+        /// <returns></returns>
         public AnimatedProperty addProperty(object obj, GameObject gameObject)
         {
             AnimatedProperty property = new AnimatedProperty(obj, gameObject, this);
@@ -195,6 +201,10 @@ public class PlaybackGameplay : MonoBehaviour
             }
         }
     }
+
+
+
+
 
 
     //}
@@ -510,7 +520,6 @@ public class PlaybackGameplay : MonoBehaviour
         }
 
 
-
         /// <summary>
         /// Generate new framedatas of the correct polymorphic type to hold their data. (And test if the types are yet supported)
         /// </summary>
@@ -559,6 +568,9 @@ public class PlaybackGameplay : MonoBehaviour
             frames = new List<FrameData>();
         }
     }
+
+
+
 
 
 
@@ -698,7 +710,7 @@ public class PlaybackGameplay : MonoBehaviour
         public MethodFrame(object[] _parameters, AnimatedProperty _property, float _time) : base(_time, _property)
         {
             parameters = _parameters;
-            ps = JsonConvert.SerializeObject(parameters);
+            ps = JsonConvert.SerializeObject(parameters);   // Had to switch to a new json library here because unity json just *would not* export a list of objects
         }
 
         public override void playBack()
@@ -726,6 +738,7 @@ public class PlaybackGameplay : MonoBehaviour
 
 
 
+
     int frameCount = 0; // temp
 
     Clip testClip;
@@ -740,7 +753,7 @@ public class PlaybackGameplay : MonoBehaviour
 
         //setTestRecording();
 
-        setTestPlayback();
+        //setTestPlayback();
 
         if (recordingNotPlayback)
             clip = setUpRecording(clipName);
@@ -793,18 +806,48 @@ public class PlaybackGameplay : MonoBehaviour
         {
             newClip.addProperty(tf, tf.gameObject);
         }
+
+        foreach (Ghost ghost in ghosts)
+        {
+            // TODO these gameobject refs seem redundant..?
+            newClip.addProperty(ghost.transform, ghost.gameObject);
+            new AnimatedProperty(ghost, ghost.direction, ghost.gameObject, newClip);
+            new AnimatedProperty(ghost, ghost.state, ghost.gameObject, newClip);
+            new AnimatedProperty(ghost, ghost.target, ghost.gameObject, newClip);
+            new AnimatedProperty(ghost, ghost.bodySpinAngle, ghost.gameObject, newClip);
+
+        }
+
+        Game game = Game.instance;
+        new AnimatedProperty(game, game.frightened, game.gameObject, newClip);
+        new AnimatedProperty(game, game.paused, game.gameObject, newClip);
+
         return newClip;
     }
     public Clip setUpPlayback(string clipName)
     {
         Clip newClip = Clip.loadClip(clipName);
 
-        int index = 0;
+        int i = 0;
         foreach (Transform tf in transforms)
         {
-            newClip.animatedProperties[index].obj = tf;
-            index++;
+            newClip.animatedProperties[i++].linkLoadedPropertyToObject(tf.gameObject);
         }
+
+        foreach (Ghost ghost in ghosts)
+        {
+            newClip.animatedProperties[i++].linkLoadedPropertyToObject(ghost.gameObject);
+            newClip.animatedProperties[i++].linkLoadedPropertyToObject(ghost.gameObject);
+            newClip.animatedProperties[i++].linkLoadedPropertyToObject(ghost.gameObject);
+            newClip.animatedProperties[i++].linkLoadedPropertyToObject(ghost.gameObject);
+            newClip.animatedProperties[i++].linkLoadedPropertyToObject(ghost.gameObject);
+        }
+
+        print("i " + i);
+        newClip.animatedProperties[i++].linkLoadedPropertyToObject(Game.instance.gameObject);
+        newClip.animatedProperties[i++].linkLoadedPropertyToObject(Game.instance.gameObject);
+        print("i " + i);
+
         return newClip;
     }
 
@@ -819,10 +862,10 @@ public class PlaybackGameplay : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        foreach (AnimatedProperty property in testClip.animatedProperties)
-        {
-            property.frames[0].playBack();
-        }
+        //foreach (AnimatedProperty property in testClip.animatedProperties)
+        //{
+        //    property.frames[0].playBack();
+        //}
 
 
         //newClip.animatedProperties[0].frames[0].playBack();
@@ -845,7 +888,8 @@ public class PlaybackGameplay : MonoBehaviour
                     property.frames[frameCount].playBack();
                 }
                 frameCount++;
-                if (frameCount >= 450)
+                //if (frameCount >= 450)
+                if (frameCount >= 1600)
                     frameCount = 0;
             }
         }

@@ -96,6 +96,26 @@ public class Ghost : MonoBehaviour
     /// </summary>
     public float killedPlayerTimer;
 
+
+
+
+
+
+
+
+
+
+
+    public void testFunction(string testString, int testInt)
+    {
+        print("testFunction: string: " + testString + " testInt " + testInt);
+    }
+    public void testFunction(string testString, object obj, float floa)
+    {
+        print("testFunction: string: " + testString + " obj " + obj + " floa " + floa);
+    }
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -264,10 +284,10 @@ public class Ghost : MonoBehaviour
             } else   // Still within bounds
             {
                 // Get valid travel directions to choose from
+                
                 int oppositeDirection = (int)direction - 2;
                 if (oppositeDirection < 0) oppositeDirection = 4 + oppositeDirection;
                 List<Direction> validDirections = new List<Direction>();
-                //print("validDirections " + validDirections[0]);
 
                 for (int d = 0; d < 4; d++)
                 {

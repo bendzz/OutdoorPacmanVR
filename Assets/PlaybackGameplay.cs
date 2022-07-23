@@ -15,12 +15,21 @@ using System.Reflection;
 /// </summary>
 public class PlaybackGameplay : MonoBehaviour
 {
+    public bool activelyRecordingOrPlaying = true;
+    [Tooltip("WARNING temporary, must be set before game starts")]
+    public bool recordingNotPlayback = true;
+
     [Tooltip("Transforms to record and playback")]
     public List<Transform> transforms;
     public List<Ghost> ghosts;
 
-
     public Clip clip;
+
+
+
+
+
+
 
     /// <summary>
     /// Animation clips -> AnimatedObjects -> AnimatedPropertys -> FrameData // TODO
@@ -31,6 +40,17 @@ public class PlaybackGameplay : MonoBehaviour
         public const string frameString = "F=";
 
         public string name;
+
+
+        // TODO: Need to set clip time as it records (via timedelta?) and grab the max time from loaded recordings
+
+        /// <summary>
+        /// The current playback time of the clip (loops when it reaches the end and a frame is played)
+        /// </summary>
+        public float clipTime;
+        public float clipLength;
+
+
         /// <summary>
         /// Note: The order of this has to stay constant during the game- No removing properties. 
         /// These indices are used for matching frameData to their property during saving/loading
@@ -64,6 +84,19 @@ public class PlaybackGameplay : MonoBehaviour
                 property.addNewFrame(time);
             }
         }
+
+        //public void playbackAFrame(float timeDelta)
+        //{
+        //    clipTime += timeDelta;
+        //    if (clipTime > clipLength)
+        //        clipTime = clipTime % clipLength;
+
+        //    foreach (AnimatedProperty property in animatedProperties)
+        //    {
+        //        //property.addNewFrame(time);
+        //        asdasda
+        //    }
+        //}
 
         public void saveClip()
         {
@@ -108,6 +141,11 @@ public class PlaybackGameplay : MonoBehaviour
                     //AnimatedProperty property = AnimatedProperty.FromJson(line);
                     AnimatedProperty property = AnimatedProperty.FromJson(trimmedLine);
                     property.preLoadedProperty();
+
+                    //System.Type objType = System.Type.GetType(property.typeString);
+                    //property.obj = System.Convert.ChangeType(property.objString, objType);
+
+
                     newClip.animatedProperties.Add(property);
                     //print("property type " + property.frameType);
                 }
@@ -128,11 +166,8 @@ public class PlaybackGameplay : MonoBehaviour
                     string frameTypeS = property.frameType;
 
                     System.Type frameType = System.Type.GetType(frameTypeS);
-                    //print("frameType " + frameType);
+                    
 
-                    //FrameData frame = JsonUtility.FromJson<FrameData>(trimmedLine);
-                    //FrameData frame = JsonUtility.FromJson<typeof( frameType)>(trimmedLine);
-                    //FrameData frame = JsonUtility.FromJson<TransformFrame>(trimmedLine);    // TEMP
                     FrameData frame = (FrameData)JsonUtility.FromJson(trimmedLine, frameType);
 
                     frame.setProperty(property);
@@ -181,25 +216,39 @@ public class PlaybackGameplay : MonoBehaviour
         /// In game reference to the variable/method/object etc to be recorded or animated
         /// </summary>
         public object obj;
+        /// <summary>
+        /// In case the Json fails to convert the obj into string
+        /// </summary>
+        public string objString;
 
         //public System.Type FrameType;
-        public System.Type Type;
-        public string type;
+        public System.Type type;
+        public string typeString;
         /// <summary>
         /// What FrameData type exactly loaded frames need to be casted into
         /// </summary>
         public string frameType;
 
+
+        /// <summary>
+        /// Note, needs to point to the specific script or component etc to be animated (if using reflection)
+        /// </summary>
+        public GameObject gameObject;   // TODO make this not record to Json; private, with getters/setters?
         /// <summary>
         /// Some way for the data to be linked to an object when loaded back into unity. 
         /// Can be script specific or from the scene hierarchy or etc. Default is the object name
         /// </summary>
-        public string gameObjectRef;
-        public GameObject gameObject;   // TODO make this not record to Json; private, with getters/setters?
+        public string gameObjectString;    // TODO not actually used when loading in clips atm
+
+
+        /// <summary>
+        /// (Used for Reflection based keyframes) The actual script component or transform or gameobject or whatever that the propertyOrField belongs to.
+        /// </summary>
+        public object animatedComponent;
         /// <summary>
         /// For saving and restoring Reflection gathered FieldInfo, PropertyInfo, methods etc, so those variables/methods can be recorded and animated
         /// </summary>
-        public string propertyReference;
+        public string animatedComponentString;
 
         public List<FrameData> frames;
 
@@ -211,37 +260,146 @@ public class PlaybackGameplay : MonoBehaviour
         /// <param name="_obj">The property to be animated</param>
         public AnimatedProperty(object _obj, GameObject _gameObject, Clip _clip)
         {
+            startConstructor(_obj, _gameObject, _clip);
+
+            finishConstructor();
+        }
+
+        void startConstructor(object _obj, GameObject _gameObject, Clip _clip)
+        {
             obj = _obj;
             clip = _clip;
 
             gameObject = _gameObject;
-            gameObjectRef = gameObject.name;
+            gameObjectString = gameObject.name;
+        }
+        void finishConstructor()
+        {
+            clip.animatedProperties.Add(this);
+            ID = clip.animatedProperties.Count - 1;
 
+            objString = obj.ToString();
 
-            _clip.animatedProperties.Add(this);
-            ID = _clip.animatedProperties.Count - 1;
-
-            Type = obj.GetType();
-            type = Type.ToString();
+            type = obj.GetType();
+            typeString = type.ToString();
 
             frames = new List<FrameData>();
 
+            frameDataFactory(this, 0);  // Will log an error if the frame type isn't supported. (Note: causes a bit of garbage collection)
         }
 
         /// <summary>
-        /// Only used for loading clips from a file. The game object references still need to be restored.
+        /// For setting up Reflection based keyframes, like modifying variables using FieldInfo or PropertyInfo
         /// </summary>
-        //public AnimatedProperty(string _gameObjectRef, string _type, string _propertyReference,  Clip _clip)
-        //{
-        //    gameObjectRef = _gameObjectRef;
-        //    type = _type;
-        //    propertyReference = _propertyReference;
-        //    clip = _clip;
+        /// <param name="_gameObject">The base gameobject</param>
+        /// <param name="animatedObject">The actual script component or transform or gameobject or whatever that the propertyOrField belongs to.</param>
+        /// <param name="propertyOrField">The specific value of the script/gameobject to be animated (will be grabbed via reflection)</param>
+        /// <param name="_clip">parent clip</param>
+        /// 
+        //public AnimatedProperty(object _animatedObject, object propertyOrField, GameObject _gameObject, Clip _clip) : this(propertyOrField, _gameObject, _clip)
+        public AnimatedProperty(object _animatedObject, object propertyOrField, GameObject _gameObject, Clip _clip)
+        {
+            startConstructor(propertyOrField, _gameObject, _clip);
 
+            animatedComponent = _animatedObject;
+            animatedComponentString = animatedComponent.ToString();
 
+            obj = null;
+            foreach (PropertyInfo property in animatedComponent.GetType().GetProperties())
+            {
+                try
+                {
+                    //print("PROPERTY = " + property + " VALUE = " + property.GetValue(obj));
+                    if (propertyOrField.Equals(property.GetValue(animatedComponent)))
+                    {
+                        obj = property;
+                        break;
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    //Debug.LogError("Exception thrown: " + e); 
+                }
+            }
+            foreach (FieldInfo field in animatedComponent.GetType().GetFields())
+            {
+                //print("FIELD = " + field + " VALUE = " + field.GetValue(obj));
+                if (propertyOrField.Equals(field.GetValue(animatedComponent)))
+                {
+                    obj = field;
+                    break;
+                }
+            }
+            if (obj == null)
+                Debug.LogError("Reflection failed");
 
-        //    frames = new List<FrameData>();
-        //}
+            //if (obj is FieldInfo)
+            //    print("FieldInfo");
+            //else
+            //    print("Property");
+            //print("TEST " + propertyOrField + " property/field " + obj + " ref type " + obj.GetType());
+
+            finishConstructor();
+        }
+
+        // TODO add helper functions that can re-find the game object based on a saved path string etc
+        /// <summary>
+        /// Also goes through and readies the loaded in frames
+        /// </summary>
+        /// <param name="_gameObject"></param>
+        public void linkLoadedPropertyToObject(GameObject _gameObject)
+        {
+            gameObject = _gameObject;
+
+            // set property links
+            foreach(Component component in gameObject.GetComponents(typeof(Component)))
+            {
+                //print("component " + component);
+                if (component.ToString().Equals(animatedComponentString))
+                {
+                    //print("matched animatedObject to " + component);
+                    animatedComponent = component;
+
+                    foreach (PropertyInfo property in animatedComponent.GetType().GetProperties())
+                    {
+                        try
+                        {
+                            if (property.ToString().Equals(objString))
+                            {
+                                //print("MATCHED PROPERTY! " + property);
+                                obj = property;
+                                break;
+                            }
+                        }
+                        catch (System.Exception e)
+                        { } //Debug.LogError("Exception thrown: " + e); 
+                    }
+                    foreach (FieldInfo field in animatedComponent.GetType().GetFields())
+                    {
+                        if (field.ToString().Equals(objString))
+                        {
+                            //print("MATCHED FIELD! " + field);
+                            obj = field;
+                            break;
+                        }
+                    }
+                    break;
+                } else if (component.ToString().Equals(objString))
+                {
+                    //print("matched obj to " + component);
+                    obj = component;
+                    break;
+                }
+            }
+            if (obj == null)
+                Debug.LogError("ERROR: Failed to match " + gameObject + " to property objString " + objString);
+
+            // cleanup frames
+            foreach(FrameData frame in frames)
+            {
+                frame.loadedFromJson();
+            }
+        }
 
 
         /// <summary>
@@ -249,21 +407,40 @@ public class PlaybackGameplay : MonoBehaviour
         /// </summary>
         public void addNewFrame(float time)
         {
-            FrameData frame = null;
-            //frame = new (FrameType)(ID, this);  // TODO how? Automated type setup?
-
-            if (obj is Transform)
-            {
-                frame = new TransformFrame(this, time);
-            }
-            else
-                Debug.LogError("unknown frameData object attempting to be created for: " + obj);
+            FrameData frame = frameDataFactory(this, time);
 
             frames.Add(frame);
             if (frameType == null)
             {
                 frameType = frame.GetType().ToString();
             }
+        }
+
+        /// <summary>
+        /// Generate new framedatas of the correct polymorphic type to hold their data. (And test if the types are yet supported)
+        /// </summary>
+        /// <returns></returns>
+        public FrameData frameDataFactory(AnimatedProperty parent, float time)
+        {
+            FrameData frame = null;
+
+            //frame = new (FrameType)(ID, this);  // TODO how? Automated type setup?
+
+            if (obj is Transform)
+            {
+                frame = new TransformFrame(this, time);
+            }
+            else if (obj is FieldInfo)
+            {
+                frame = new GenericFrame(this, time);
+            } else if (obj is PropertyInfo)
+            {
+                frame = new GenericFrame(this, time);
+            }
+            else
+                Debug.LogError("unknown frameData type attempting to be created for: " + obj + " of type: " + obj.GetType());
+
+            return frame;
         }
 
         public string ToJson()
@@ -312,9 +489,15 @@ public class PlaybackGameplay : MonoBehaviour
             return JsonUtility.ToJson(this);
         }
 
-        public virtual void FromJson(string json)
+        //public virtual void FromJson(string json)
+        //{
+        //    JsonUtility.FromJsonOverwrite(json, this);
+        //}
+        /// <summary>
+        /// A chance to clean up the loaded in frame data, like fixing the data variable in GenericFrame
+        /// </summary>
+        public virtual void loadedFromJson()
         {
-            JsonUtility.FromJsonOverwrite(json, this);
         }
 
         public void setProperty(AnimatedProperty _property)
@@ -336,7 +519,10 @@ public class PlaybackGameplay : MonoBehaviour
         public TransformFrame(AnimatedProperty _property, float _time) : base(_time, _property)
         {
             //obj = refTransform;
-            property = _property;
+            //property = _property; // TOD untested
+            if (!(property.obj is Transform))   // TODO can I make this a generic function that gets called by all FrameDatas?
+                Debug.LogError("Given framedata input " + property.obj + " is not type Transform");
+
             Transform obj = (Transform)property.obj;
 
             lPos = obj.localPosition;
@@ -358,66 +544,98 @@ public class PlaybackGameplay : MonoBehaviour
             obj.localRotation = lRot;
         }
     }
-    // TODO how to keep the same keying set for frame after frame being added?
-    /*
     /// <summary>
-    /// Can store object and script data from .GetType().GetProperties() and .GetFields;
-    /// TODO: add systems for recording and playing back method calls?
+    /// Used in reflection driven frames, like FieldInfo or PropertyInfo references
     /// </summary>
     public class GenericFrame : FrameData
     {
-        // TODO should these be private? Will the JSON still work?
-        // TODO checks to make sure these lists are in sync
-        public List<PropertyInfo> properties;
-        public List<Object> propertyData;
+        public object data;
+        /// <summary>
+        /// "data string", for to and from Json
+        /// </summary>
+        public string ds;
 
-        public List<FieldInfo> fields;
-        public List<Object> fieldData;
 
-        public GenericFrame()
+        public GenericFrame(AnimatedProperty _property, float _time) : base(_time, _property)
         {
-            properties = new List<PropertyInfo>();
-            propertyData = new List<Object>();
-
-            fields = new List<FieldInfo>();
-            fieldData = new List<Object>();
+            if (property.obj is FieldInfo)
+            {
+                data = ((FieldInfo)property.obj).GetValue(property.animatedComponent);
+            }
+            else if (property.obj is PropertyInfo)
+            {
+                data = ((PropertyInfo)property.obj).GetValue(property.animatedComponent);
+            }
+            //ds = data.ToString();
+            ds = JsonUtility.ToJson(data);
         }
 
-        public void addProperty(PropertyInfo property)
+        public override void playBack() 
         {
-            properties.Add(property);
-            propertyData.Add(null);
-        }
-        public void addField(FieldInfo field)
-        {
-            fields.Add(field);
-            fieldData.Add(null);
+            if (property.obj is FieldInfo)
+            {
+                // TODO maybe there's a better place for this?
+                //if (data == null)
+                //    data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
+
+                ((FieldInfo)property.obj).SetValue(property.animatedComponent, data);
+                //print("setting field: " + (FieldInfo)property.obj + " value " + data);
+            }
+            else if (property.obj is PropertyInfo)
+            {
+                // TODO maybe there's a better place for this?
+                //if (data == null)
+                //    data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
+
+                ((PropertyInfo)property.obj).SetValue(property.animatedComponent, data);
+                //print("setting property: " + (PropertyInfo)property.obj + " value " + data);
+            }
         }
 
-        public override string ToJson()
+        public override void loadedFromJson()
         {
-            return JsonUtility.ToJson(this);
-        }
+            //print("loadedFromJson");
+            if (property.obj is FieldInfo)
+            {
+                // TODO maybe there's a better place for this?
+                if (data == null)
+                    data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
+                //print("data = " + data);
 
-        public override void FromJson(string json)
-        {
-            JsonUtility.FromJsonOverwrite(json, this);
-        }
+                //((FieldInfo)property.obj).SetValue(property.animatedComponent, data);
+                ////print("setting field: " + (FieldInfo)property.obj + " value " + data);
+            }
+            else if (property.obj is PropertyInfo)
+            {
+                // TODO maybe there's a better place for this?
+                if (data == null)
+                    data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
+                //print("data = " + data);
 
-        // TODO setting and reading data view the fields/properties
-        public override void playBack()
-        {
-            throw new System.NotImplementedException();
+                //((PropertyInfo)property.obj).SetValue(property.animatedComponent, data);
+                ////print("setting property: " + (PropertyInfo)property.obj + " value " + data);
+            }
         }
-
-        //public override void record()
-        //{
-        //    throw new System.NotImplementedException();
-        //}
     }
-    */
 
-    int frameCount = 0;
+
+
+
+
+
+
+
+
+    int frameCount = 0; // temp
+
+    FieldInfo fieldInfo = null;
+    PropertyInfo propertyInfo = null;
+    //dynamic objBase;    // Assets\PlaybackGameplay.cs(544,23): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+    object objBase;   
+    object objProperty;// = 
+
+
+    Clip testClip;
 
     // Start is called before the first frame update
     void Start()
@@ -447,44 +665,156 @@ public class PlaybackGameplay : MonoBehaviour
         //clip.debugPrintClip();
 
 
-        //clip = new Clip("test pacman clip");
-        //foreach(Transform tf in transforms)
+
+        //objBase = ghosts[0];
+        objBase = transform;
+        //objProperty = ((typeof(objBase))objBase).direction;
+        //objProperty = objBase.direction;
+       // objProperty = ghosts[0].direction;
+        objProperty = transform.position;
+
+        //ref object obj = ref transform.position;
+        //ref object obj = ref ghosts[0].direction;
+
+
+        //foreach (PropertyInfo property in objBase.GetType().GetProperties())
         //{
-        //    clip.addProperty(tf, tf.gameObject);
+        //    try
+        //    {
+        //        //print("PROPERTY = " + property + " VALUE = " + property.GetValue(obj));
+        //        if (objProperty.Equals(property.GetValue(objBase)))
+        //        {
+        //            propertyInfo = property;
+        //            break;
+        //        }
+        //    }
+        //    catch (System.Exception e)
+        //    {
+        //        //Debug.LogError("Exception thrown: " + e); 
+        //    }
         //}
+        //foreach (FieldInfo field in objBase.GetType().GetFields())
+        //{
+        //    //print("FIELD = " + field + " VALUE = " + field.GetValue(obj));
+        //    if (objProperty.Equals(field.GetValue(objBase)))
+        //    {
+        //        fieldInfo = field;
+        //        break;
+        //    }
+        //}
+        //print("TEST " + objProperty + " field " + fieldInfo + " property " + propertyInfo);
 
 
-        clip = Clip.loadClip("test pacman clip");
+        string clipName = "Pacman Test";
+
+
+
+        ////print("test type " + (ghosts[0] is GameObject));
+        //testClip = new Clip("Pacman Test Ghost");
+        ////testClip.animatedProperties.Add(new AnimatedProperty(ghosts[0], ghosts[0].direction, ghosts[0].gameObject, testClip));
+        ////testClip.animatedProperties.Add(new AnimatedProperty(ghosts[0].transform, ghosts[0].transform.position, ghosts[0].gameObject, testClip));
+
+        //new AnimatedProperty(ghosts[0], ghosts[0].direction, ghosts[0].gameObject, testClip);
+        //new AnimatedProperty(ghosts[0].transform, ghosts[0].transform.position, ghosts[0].gameObject, testClip);
+        //new AnimatedProperty(transforms[0], transforms[0].gameObject, testClip); ;
+
+
+        //testClip.recordFrame(0);
+        //testClip.recordFrame(1);
+        //testClip.saveClip(); 
+
+
+        testClip = Clip.loadClip("Pacman Test Ghost");
+
+        testClip.animatedProperties[0].linkLoadedPropertyToObject(ghosts[0].gameObject);
+        testClip.animatedProperties[1].linkLoadedPropertyToObject(ghosts[0].gameObject);
+        testClip.animatedProperties[2].linkLoadedPropertyToObject(transforms[0].gameObject);
+
+
+        //testClip.debugPrintClip();
+
+
+
+
+        if (recordingNotPlayback)
+            clip = setUpRecording(clipName);
+        else
+            clip = setUpPlayback(clipName);
+
+    }
+
+    public Clip setUpRecording(string clipName)
+    {
+        Clip newClip = new Clip(clipName);
+        foreach (Transform tf in transforms)
+        {
+            newClip.addProperty(tf, tf.gameObject);
+        }
+        return newClip;
+    }
+    public Clip setUpPlayback(string clipName)
+    {
+        Clip newClip = Clip.loadClip(clipName);
 
         int index = 0;
         foreach (Transform tf in transforms)
         {
-            //clip.addProperty(tf, tf.gameObject);
-            clip.animatedProperties[index].obj = tf;
-            //print("set property " + index + " of " + clip.animatedProperties[index].obj);
+            newClip.animatedProperties[index].obj = tf;
             index++;
         }
+        return newClip;
     }
+
+
+
+
+
+
+
+
 
     // Update is called once per frame
     void Update()
     {
-        //clip.recordFrame(Time.realtimeSinceStartup);
-
-        foreach(AnimatedProperty property in clip.animatedProperties)
+        foreach (AnimatedProperty property in testClip.animatedProperties)
         {
             //print("property " + property.obj);
-            property.frames[frameCount].playBack();
+            property.frames[0].playBack();
         }
-        frameCount++;
-        if (frameCount >= 450)
-            frameCount = 0;
+
+        //newClip.animatedProperties[0].frames[0].playBack();
+
+
+        //frameCount++;
+        //fieldInfo.SetValue(objBase, frameCount % 4);
+        //propertyInfo.SetValue(objBase, new Vector3(frameCount % 4, frameCount % 4, frameCount % 4));
+
+        if (activelyRecordingOrPlaying)
+        {
+            if (recordingNotPlayback)
+                clip.recordFrame(Time.realtimeSinceStartup);
+            else
+            {
+                // TODO a playback function
+                foreach (AnimatedProperty property in clip.animatedProperties)
+                {
+                    //print("property " + property.obj);
+                    property.frames[frameCount].playBack();
+                }
+                frameCount++;
+                if (frameCount >= 450)
+                    frameCount = 0;
+            }
+        }
     }
 
     private void OnDestroy()
     {
-        //print("Saving animation data");
-        //clip.saveClip();
+        if (recordingNotPlayback)
+        {
+            print("Saving animation data");
+            clip.saveClip();
+        }
     }
 
     public void testReflection()

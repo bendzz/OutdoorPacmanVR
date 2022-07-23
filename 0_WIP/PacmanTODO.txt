@@ -130,8 +130,11 @@ TODO:
 -Change package name in unity/oculus dash
 -Fix the floor height so walls don't warp beneath floor
 	
--make clips rename themselves if there's already one there, instead of overwriting
 	
+TODO
+	-make clips rename themselves if there's already one there, instead of overwriting
+	-Tomorrow I need to have it select the correct frame based on time
+	-test my idea of generic variable recording and playback with the ghost scripts
 	
 	
 	

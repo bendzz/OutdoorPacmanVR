@@ -85,6 +85,7 @@ public class PlaybackGameplay : MonoBehaviour
             }
         }
 
+        // TODO
         //public void playbackAFrame(float timeDelta)
         //{
         //    clipTime += timeDelta;
@@ -98,6 +99,9 @@ public class PlaybackGameplay : MonoBehaviour
         //    }
         //}
 
+        /// <summary>
+        /// Saves clip to external file, according to the clip's name
+        /// </summary>
         public void saveClip()
         {
             string filePath = GetFilePath(name);
@@ -120,6 +124,11 @@ public class PlaybackGameplay : MonoBehaviour
 
             }
         }
+        /// <summary>
+        /// Loads clip from external file using the clip name
+        /// </summary>
+        /// <param name="_name">clip name</param>
+        /// <returns></returns>
         public static Clip loadClip(string _name)
         {
             Clip newClip = new Clip(_name);
@@ -129,39 +138,31 @@ public class PlaybackGameplay : MonoBehaviour
 
             foreach (string line in File.ReadLines(filePath))
             {
-                //print("line " + line);
+                // check if it's a property or frame
                 int i0 = line.IndexOf("=");
-                //print("i0 " + i0);
                 string type = line.Substring(0, i0 + 1);
                 string trimmedLine = line.Substring(i0 + 1);
-                //print("trimmed line " + trimmedLine);
+
                 if (type.Contains(propertyString))
                 {
-                    //newClip.addProperty()
-                    //AnimatedProperty property = AnimatedProperty.FromJson(line);
+                    // set up property
                     AnimatedProperty property = AnimatedProperty.FromJson(trimmedLine);
                     property.preLoadedProperty();
 
-                    //System.Type objType = System.Type.GetType(property.typeString);
-                    //property.obj = System.Convert.ChangeType(property.objString, objType);
-
 
                     newClip.animatedProperties.Add(property);
-                    //print("property type " + property.frameType);
                 }
                 else if (type.Contains(frameString))
                 {
-                    // get frameType
+                    // get frame ID
                     string IDSearch = "\"ID\":";
                     int s0 = line.IndexOf(IDSearch) + IDSearch.Length;
-                    //print("s0 " + s0);
                     int s1 = line.IndexOf(",", s0);
                     string IDs = line.Substring(s0, s1 - s0);
-                    //print("IDs " + IDs);
                     int ID = int.Parse(IDs);
-                    //print("ID " + ID);
 
-                    //AnimatedProperty property = newClip.animatedProperties[frame.ID];
+
+                    // set up frame
                     AnimatedProperty property = newClip.animatedProperties[ID];
                     string frameTypeS = property.frameType;
 
@@ -292,11 +293,10 @@ public class PlaybackGameplay : MonoBehaviour
         /// For setting up Reflection based keyframes, like modifying variables using FieldInfo or PropertyInfo
         /// </summary>
         /// <param name="_gameObject">The base gameobject</param>
-        /// <param name="animatedObject">The actual script component or transform or gameobject or whatever that the propertyOrField belongs to.</param>
+        /// <param name="animatedObject">The actual script component that propertyOrField belongs to.</param>
         /// <param name="propertyOrField">The specific value of the script/gameobject to be animated (will be grabbed via reflection)</param>
         /// <param name="_clip">parent clip</param>
         /// 
-        //public AnimatedProperty(object _animatedObject, object propertyOrField, GameObject _gameObject, Clip _clip) : this(propertyOrField, _gameObject, _clip)
         public AnimatedProperty(object _animatedObject, object propertyOrField, GameObject _gameObject, Clip _clip)
         {
             startConstructor(propertyOrField, _gameObject, _clip);
@@ -309,7 +309,6 @@ public class PlaybackGameplay : MonoBehaviour
             {
                 try
                 {
-                    //print("PROPERTY = " + property + " VALUE = " + property.GetValue(obj));
                     if (propertyOrField.Equals(property.GetValue(animatedComponent)))
                     {
                         obj = property;
@@ -317,13 +316,10 @@ public class PlaybackGameplay : MonoBehaviour
                     }
                 }
                 catch (System.Exception e)
-                {
-                    //Debug.LogError("Exception thrown: " + e); 
-                }
+                { }
             }
             foreach (FieldInfo field in animatedComponent.GetType().GetFields())
             {
-                //print("FIELD = " + field + " VALUE = " + field.GetValue(obj));
                 if (propertyOrField.Equals(field.GetValue(animatedComponent)))
                 {
                     obj = field;
@@ -333,16 +329,12 @@ public class PlaybackGameplay : MonoBehaviour
             if (obj == null)
                 Debug.LogError("Reflection failed");
 
-            //if (obj is FieldInfo)
-            //    print("FieldInfo");
-            //else
-            //    print("Property");
-            //print("TEST " + propertyOrField + " property/field " + obj + " ref type " + obj.GetType());
-
             finishConstructor();
         }
 
+
         // TODO add helper functions that can re-find the game object based on a saved path string etc
+
         /// <summary>
         /// Also goes through and readies the loaded in frames
         /// </summary>
@@ -351,13 +343,11 @@ public class PlaybackGameplay : MonoBehaviour
         {
             gameObject = _gameObject;
 
-            // set property links
+            // set property and field links
             foreach(Component component in gameObject.GetComponents(typeof(Component)))
             {
-                //print("component " + component);
                 if (component.ToString().Equals(animatedComponentString))
                 {
-                    //print("matched animatedObject to " + component);
                     animatedComponent = component;
 
                     foreach (PropertyInfo property in animatedComponent.GetType().GetProperties())
@@ -366,19 +356,17 @@ public class PlaybackGameplay : MonoBehaviour
                         {
                             if (property.ToString().Equals(objString))
                             {
-                                //print("MATCHED PROPERTY! " + property);
                                 obj = property;
                                 break;
                             }
                         }
                         catch (System.Exception e)
-                        { } //Debug.LogError("Exception thrown: " + e); 
+                        { } // TODO only catch 'item is depreciated' exceptions
                     }
                     foreach (FieldInfo field in animatedComponent.GetType().GetFields())
                     {
                         if (field.ToString().Equals(objString))
                         {
-                            //print("MATCHED FIELD! " + field);
                             obj = field;
                             break;
                         }
@@ -386,7 +374,6 @@ public class PlaybackGameplay : MonoBehaviour
                     break;
                 } else if (component.ToString().Equals(objString))
                 {
-                    //print("matched obj to " + component);
                     obj = component;
                     break;
                 }
@@ -443,6 +430,7 @@ public class PlaybackGameplay : MonoBehaviour
             return frame;
         }
 
+
         public string ToJson()
         {
             return JsonUtility.ToJson(this);
@@ -451,6 +439,7 @@ public class PlaybackGameplay : MonoBehaviour
         {
             return (AnimatedProperty)JsonUtility.FromJson(json, typeof(AnimatedProperty));
         }
+
         /// <summary>
         /// When a property is loaded from a file via Json, this sets up some basics. Doesn't restore gameobject refs by default though!
         /// </summary>
@@ -460,25 +449,21 @@ public class PlaybackGameplay : MonoBehaviour
         }
     }
 
-    // TODO: Write a far more compact string to data and data to string function that can be called by all of these 
+
+
+    /// <summary>
+    /// Base class for all animation frames holding arbitrary data
+    /// </summary>
     public abstract class FrameData
     {
-        //public string type; // TODO pretty wasteful having this in every frame
         public int ID;
         public float time;
         protected AnimatedProperty property;
-        //public System.Type type;
 
-        //public abstract void record();
-
-        //public FrameData(int _ID, float _time, AnimatedProperty _property)
         public FrameData(float _time, AnimatedProperty _property)
         {
             time = _time;
             ID = _property.ID;
-            //type = GetType();
-            //type = ;
-            //type = GetType().ToString();
             property = _property;
         }
 
@@ -489,10 +474,6 @@ public class PlaybackGameplay : MonoBehaviour
             return JsonUtility.ToJson(this);
         }
 
-        //public virtual void FromJson(string json)
-        //{
-        //    JsonUtility.FromJsonOverwrite(json, this);
-        //}
         /// <summary>
         /// A chance to clean up the loaded in frame data, like fixing the data variable in GenericFrame
         /// </summary>
@@ -505,21 +486,18 @@ public class PlaybackGameplay : MonoBehaviour
             property = _property;
         }
     }
-    //[System.Serializable]
+    /// <summary>
+    /// Frame for transform data
+    /// </summary>
     public class TransformFrame : FrameData
     {
-        //public Transform obj;
-        //public AnimatedProperty property;
 
         public Vector3 lPos;
         public Vector3 lScal;
         public Quaternion lRot;
 
-        //public TransformFrame(AnimatedProperty _property, int _ID, float _time) : base(_ID, _time, _property)
         public TransformFrame(AnimatedProperty _property, float _time) : base(_time, _property)
         {
-            //obj = refTransform;
-            //property = _property; // TOD untested
             if (!(property.obj is Transform))   // TODO can I make this a generic function that gets called by all FrameDatas?
                 Debug.LogError("Given framedata input " + property.obj + " is not type Transform");
 
@@ -529,11 +507,6 @@ public class PlaybackGameplay : MonoBehaviour
             lScal = obj.localScale;
             lRot = obj.localRotation;
         }
-
-        //public override string ToJson()
-        //{
-        //    return JsonUtility.ToJson(this) + " alt func";
-        //}
 
         public override void playBack()
         {
@@ -545,7 +518,7 @@ public class PlaybackGameplay : MonoBehaviour
         }
     }
     /// <summary>
-    /// Used in reflection driven frames, like FieldInfo or PropertyInfo references
+    /// Uses reflection to let you animate arbitrary variables of components and scripts
     /// </summary>
     public class GenericFrame : FrameData
     {
@@ -558,6 +531,7 @@ public class PlaybackGameplay : MonoBehaviour
 
         public GenericFrame(AnimatedProperty _property, float _time) : base(_time, _property)
         {
+            // TODO check if inputs are valid
             if (property.obj is FieldInfo)
             {
                 data = ((FieldInfo)property.obj).GetValue(property.animatedComponent);
@@ -566,7 +540,6 @@ public class PlaybackGameplay : MonoBehaviour
             {
                 data = ((PropertyInfo)property.obj).GetValue(property.animatedComponent);
             }
-            //ds = data.ToString();
             ds = JsonUtility.ToJson(data);
         }
 
@@ -574,46 +547,25 @@ public class PlaybackGameplay : MonoBehaviour
         {
             if (property.obj is FieldInfo)
             {
-                // TODO maybe there's a better place for this?
-                //if (data == null)
-                //    data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
-
                 ((FieldInfo)property.obj).SetValue(property.animatedComponent, data);
-                //print("setting field: " + (FieldInfo)property.obj + " value " + data);
             }
             else if (property.obj is PropertyInfo)
             {
-                // TODO maybe there's a better place for this?
-                //if (data == null)
-                //    data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
-
                 ((PropertyInfo)property.obj).SetValue(property.animatedComponent, data);
-                //print("setting property: " + (PropertyInfo)property.obj + " value " + data);
             }
         }
 
         public override void loadedFromJson()
         {
-            //print("loadedFromJson");
             if (property.obj is FieldInfo)
             {
-                // TODO maybe there's a better place for this?
                 if (data == null)
                     data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
-                //print("data = " + data);
-
-                //((FieldInfo)property.obj).SetValue(property.animatedComponent, data);
-                ////print("setting field: " + (FieldInfo)property.obj + " value " + data);
             }
             else if (property.obj is PropertyInfo)
             {
-                // TODO maybe there's a better place for this?
                 if (data == null)
                     data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
-                //print("data = " + data);
-
-                //((PropertyInfo)property.obj).SetValue(property.animatedComponent, data);
-                ////print("setting property: " + (PropertyInfo)property.obj + " value " + data);
             }
         }
     }
@@ -628,82 +580,11 @@ public class PlaybackGameplay : MonoBehaviour
 
     int frameCount = 0; // temp
 
-    FieldInfo fieldInfo = null;
-    PropertyInfo propertyInfo = null;
-    //dynamic objBase;    // Assets\PlaybackGameplay.cs(544,23): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
-    object objBase;   
-    object objProperty;// = 
-
-
     Clip testClip;
 
     // Start is called before the first frame update
     void Start()
     {
-
-        //testReflection();
-
-        //clip = new Clip("test pacman clip");
-        //AnimatedProperty property1 = clip.addProperty(transform, gameObject);
-
-        //property1.addNewFrame(Time.time);
-        //property1.addNewFrame(666);
-
-        ////print("JSON " + property.frames[0].ToJson());
-        ////print("JSON " + property.frames[1].ToJson());
-
-        //AnimatedProperty property2 = clip.addProperty(transforms[0], transforms[0].gameObject);
-        //property2.addNewFrame(Time.time);
-        ////print("JSON 2 " + property2.frames[0].ToJson());
-
-        //clip.saveClip();
-
-
-        //clip.loadClip("test pacman clip");
-        //clip = Clip.loadClip("test pacman clip");
-
-        //clip.debugPrintClip();
-
-
-
-        //objBase = ghosts[0];
-        objBase = transform;
-        //objProperty = ((typeof(objBase))objBase).direction;
-        //objProperty = objBase.direction;
-       // objProperty = ghosts[0].direction;
-        objProperty = transform.position;
-
-        //ref object obj = ref transform.position;
-        //ref object obj = ref ghosts[0].direction;
-
-
-        //foreach (PropertyInfo property in objBase.GetType().GetProperties())
-        //{
-        //    try
-        //    {
-        //        //print("PROPERTY = " + property + " VALUE = " + property.GetValue(obj));
-        //        if (objProperty.Equals(property.GetValue(objBase)))
-        //        {
-        //            propertyInfo = property;
-        //            break;
-        //        }
-        //    }
-        //    catch (System.Exception e)
-        //    {
-        //        //Debug.LogError("Exception thrown: " + e); 
-        //    }
-        //}
-        //foreach (FieldInfo field in objBase.GetType().GetFields())
-        //{
-        //    //print("FIELD = " + field + " VALUE = " + field.GetValue(obj));
-        //    if (objProperty.Equals(field.GetValue(objBase)))
-        //    {
-        //        fieldInfo = field;
-        //        break;
-        //    }
-        //}
-        //print("TEST " + objProperty + " field " + fieldInfo + " property " + propertyInfo);
-
 
         string clipName = "Pacman Test";
 
@@ -729,7 +610,6 @@ public class PlaybackGameplay : MonoBehaviour
         testClip.animatedProperties[0].linkLoadedPropertyToObject(ghosts[0].gameObject);
         testClip.animatedProperties[1].linkLoadedPropertyToObject(ghosts[0].gameObject);
         testClip.animatedProperties[2].linkLoadedPropertyToObject(transforms[0].gameObject);
-
 
         //testClip.debugPrintClip();
 
@@ -819,15 +699,6 @@ public class PlaybackGameplay : MonoBehaviour
 
     public void testReflection()
     {
-        //{
-        //    var obj = ghosts[0];
-        //    //var obj = Transform;
-        //    print("breaking down " + obj);
-        //    foreach (FieldInfo field in obj.GetType().GetFields())
-        //    {
-        //        print(obj.GetType() + ": " + field + " = " + field.GetValue(obj));
-        //    }
-        //}
         {
             //var obj = ghosts[0];
             var obj = ghosts[0];
@@ -836,14 +707,12 @@ public class PlaybackGameplay : MonoBehaviour
             {
                 try
                 {
-                    //print("PROPERTY = " + property + " TYPE = " + property.PropertyType + " VALUE = " + property.GetValue(obj));
-                    //print("PROPERTY = " + property + " TYPE = " + property.PropertyType + " VALUE = " + property.GetValue(obj));
                     print("PROPERTY = " + property + " VALUE = " + property.GetValue(obj));
                     print("JSON " + JsonUtility.ToJson(property));
                 }
                 catch (System.Exception e)
                 {
-                    //Debug.LogError("Exception thrown: " + e);
+                    //Debug.LogError("Exception thrown: " + e);     // just spits out "depreciated property!" a bunch
                 }
             }
             foreach (FieldInfo field in obj.GetType().GetFields())
@@ -854,41 +723,6 @@ public class PlaybackGameplay : MonoBehaviour
         }
     }
 
-    public void saveFile()
-    {
-
-        /*
-        // https://docs.microsoft.com/en-us/dotnet/standard/serialization/binaryformatter-security-guide uh oh. "Don't use binaryFormatter"
-        BinaryFormatter bf = new BinaryFormatter();
-
-        /// https://docs.unity3d.com/ScriptReference/Application-dataPath.html  might be able to also do it saving to the editor project files
-        FileStream file = File.Create(Application.persistentDataPath + "/jiggleMesh_" + meshName + ".save");
-        bf.Serialize(file, this);
-        file.Close();
-
-        print("WrappedMesh saved to filesystem: " + file.Name);
-        */
-
-        //https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to?pivots=dotnet-6-0
-
-        string filePath = Application.persistentDataPath + "/jiggleMesh_" + "testname1" + ".save";
-        //FileStream file = File.Create(filePath);
-
-        JsonableListWrapper<Ghost> lis = new JsonableListWrapper<Ghost>(ghosts);
-        //JsonableListWrapper<Transform> lis = new JsonableListWrapper<Transform>(transforms);
-
-        // https://forum.unity.com/threads/jsonutilities-tojson-with-list-string-not-working-as-expected.722783/
-        //string stringListAsJson = JsonUtility.ToJson(new JsonListWrapper<string>(stringList));
-        //string stringListAsJson = JsonUtility.ToJson(lis);
-        //string stringListAsJson = JsonUtility.ToJson(lis); 
-        string stringListAsJson = JsonUtility.ToJson(ghosts[0]); 
-
-        //string jsonString = JsonUtility.ToJson(stringListAsJson); 
-
-        File.WriteAllText(filePath, stringListAsJson);
-
-        print("Mesh file written to " + filePath);
-    }
 
     /// <summary>
     /// Wrap a list so it gets exported in json

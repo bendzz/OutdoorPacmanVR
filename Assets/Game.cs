@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
-using static OVRManager;
+//using static OVRManager;
 //using static OVRPlugin;
 
 public class Game : MonoBehaviour
@@ -584,6 +584,7 @@ public class Game : MonoBehaviour
                 timeSinceDotEaten = 0;
         }
 
+        /*
         // Settings
         paused = false;
         if (OVRInput.Get(OVRInput.Button.One))
@@ -661,7 +662,7 @@ public class Game : MonoBehaviour
             } else
                 pausedMovingWorld = false;
         }
-
+        */
 
 
 

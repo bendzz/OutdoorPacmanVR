@@ -770,6 +770,7 @@ public class PlaybackGameplay : MonoBehaviour
             if (obj != null)
             print("obj " + obj + " type " + obj.GetType());
         }
+        print("Objects to string: " + SpeedyJson.toString(output));
 
         //print("SS TEST " + speedyJson.SS("TEST string GOES here", 0, "ES"));
         //print("SS TEST " + speedyJson.SS("TEST string GOES here", 1, "eS"));
@@ -796,7 +797,7 @@ public class PlaybackGameplay : MonoBehaviour
     public class SpeedyJson
     {
         /// <summary>
-        /// Separates objects
+        /// Separates objects; Required after every object!
         /// </summary>
         const string separator = ",";
 
@@ -829,12 +830,68 @@ public class PlaybackGameplay : MonoBehaviour
         //const string transformStart = "TF:";
 
         /// <summary>
-        /// 
+        /// Returns a blank string and logs error to console if an unknown type is found
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static string toString(object obj)
+        {
+            string output = null;     // TODO: Concatenating strings spawns a new string every time, causing garbage collecting. Is there a way around this?
+
+            if (obj is List<object>)
+            {
+                output += listStart;
+
+                foreach(object o in (List<object>)obj)
+                {
+                    output += toString(o);
+                }
+                output += listEnd;
+            }
+            else if (obj is string)
+            {
+                List<char> str = new List<char>();
+                foreach (char c in (string)obj)
+                {
+                    if (c == '"')
+                        str.Add('\\');
+                    str.Add(c);
+                }
+                output += stringStart + new string(str.ToArray()) + stringEnd + separator;
+            }
+            else if (obj is int)
+            {
+                output += intStart + (int)obj + separator;
+            }
+            else if (obj is float)
+            {
+                output += floatStart + (float)obj + separator;
+            }
+            else if (obj is bool)
+            {
+                int bo = 0;
+                if ((bool)obj)
+                    bo = 1;
+                output += boolStart + (int)bo + separator;
+            }
+            else if (obj is Vector3)
+            {
+                Vector3 vec = (Vector3)obj;
+                output += vector3Start + vec.x + separatorProperty + vec.y + separatorProperty + vec.z + separator;
+            }
+            else
+            {
+                Debug.LogError("unrecognized item " + obj + " of type " + obj.GetType());
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Takes a pseudo json string, returns an object (or null plus console errors). See the const strings of this class for supported types
         /// </summary>
         /// <param name="Json"></param>
-        /// <param name="typeString">The string included in the AnimatedParameter describing what sort of objects to expect</param>
         /// <returns></returns>
-        //public static object read(string Json, string typeString)
         public static object readObject(string Json)
         {
             return readObject(Json, 0, out int unusedVar);
@@ -878,11 +935,14 @@ public class PlaybackGameplay : MonoBehaviour
             {
                 int strStart = objectStart + stringStart.Length;
                 int i = strStart;
+                List<char> str = new List<char>();
 
                 while (i < Json.Length)
                 {
+                    // Have to be careful of delimited quotes
                     if (Json[i] == '\\')
                     {
+                        str.Add(Json[i + 1]);
                         i += 2;
                         continue;
                     }
@@ -890,9 +950,11 @@ public class PlaybackGameplay : MonoBehaviour
                     if (SS(Json, i, stringEnd))
                     {
                         objectEnd = i + stringEnd.Length;
-                        result = Json.Substring(strStart, i - strStart);
+                        result = new string(str.ToArray()); // Kinda garbage collect-y, but I can't think of a better way
                         break;
                     }
+
+                    str.Add(Json[i]);
                     i++;
                 }
             }

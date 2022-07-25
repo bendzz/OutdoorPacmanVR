@@ -286,8 +286,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a5bcdaf7361acd4da503533bed1a6eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activelyRecordingOrPlaying: 1
-  recordingNotPlayback: 0
+  active: 1
+  recordingMode: 1
   transforms:
   - {fileID: 327659349}
   - {fileID: 1923706540}
@@ -298,6 +298,7 @@ MonoBehaviour:
   - {fileID: 244085029}
   - {fileID: 796741952}
   - {fileID: 1810339347}
+  fileNumber: 8
 --- !u!4 &244085028 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5937805069398453258, guid: a1d40edb0633b774ca6d38096e3de65e, type: 3}

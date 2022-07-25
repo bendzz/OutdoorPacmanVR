@@ -17,9 +17,9 @@ using Newtonsoft.Json;
 /// </summary>
 public class PlaybackGameplay : MonoBehaviour
 {
-    public bool activelyRecordingOrPlaying = true;
-    [Tooltip("WARNING temporary, must be set before game starts")]
-    public bool recordingNotPlayback = true;
+    public bool active = true;
+    [Tooltip("WARNING temporary, must be set before game starts. If not recording then yes playing.")]
+    public bool recordingMode = true;
 
     [Tooltip("Transforms to record and playback")]
     public List<Transform> transforms;
@@ -27,7 +27,8 @@ public class PlaybackGameplay : MonoBehaviour
 
     public Clip clip;
 
-
+    [Tooltip("The recording number to append to the clip when loading it in.")]
+    public int fileNumber;
      
 
 
@@ -77,9 +78,33 @@ public class PlaybackGameplay : MonoBehaviour
             return property;
         }
 
-        public static string GetFilePath(string _name)
+        //public static string GetFilePath(string _name)
+        //{
+        //    return Application.persistentDataPath + "/Clip_" + _name + ".txt";
+        //}
+
+        public static string GetFilePathLoading(string _name, int fileNumber)
         {
-            return Application.persistentDataPath + "/Clip_" + _name + ".txt";
+            return Application.persistentDataPath + "/Clip_" + _name + "_" + fileNumber + ".txt";
+        }
+        /// <summary>
+        /// Appends a unique fileNumber to prevent overwriting
+        /// </summary>
+        public static string GetFilePathSaving(string _name)
+        {
+            int fileNumber = 0;
+            while (true) 
+            {
+                string fileName = Application.persistentDataPath + "/Clip_" + _name + "_" + fileNumber + ".txt";
+                if (!File.Exists(fileName))
+                {
+                    return fileName;
+                    //break;
+                }
+                fileNumber++;  
+            }
+
+            //return "";
         }
 
         /// <summary>
@@ -112,9 +137,10 @@ public class PlaybackGameplay : MonoBehaviour
         /// </summary>
         public void saveClip()
         {
-            string filePath = GetFilePath(name);
+            //string filePath = GetFilePath(name);
+            string filePath = GetFilePathSaving(name);
 
-            File.WriteAllText(filePath, "");  // overwrite file
+            //File.WriteAllText(filePath, "");  // overwrite file
 
             using (StreamWriter sw = File.AppendText(filePath))
             {
@@ -137,14 +163,16 @@ public class PlaybackGameplay : MonoBehaviour
         /// </summary>
         /// <param name="_name">clip name</param>
         /// <returns></returns>
-        public static Clip loadClip(string _name)
+        public static Clip loadClip(string _name, int fileNumber)
         {
             Clip newClip = new Clip(_name);
             newClip.name = _name;
 
-            string filePath = GetFilePath(_name);
+            string filePath = GetFilePathLoading(_name, fileNumber);
 
-            foreach (string line in File.ReadLines(filePath))
+            string[] fileLines = File.ReadAllLines(filePath);
+
+            foreach (string line in fileLines)
             {
                 // check if it's a property or frame
                 int i0 = line.IndexOf("=");
@@ -165,25 +193,10 @@ public class PlaybackGameplay : MonoBehaviour
                 }
                 else if (type.Contains(frameString))
                 {
-                    //// get frame ID
-                    //string IDSearch = "\"ID\":";
-                    //int s0 = line.IndexOf(IDSearch) + IDSearch.Length;
-                    //int s1 = line.IndexOf(",", s0);
-                    //string IDs = line.Substring(s0, s1 - s0);
-                    //int ID = int.Parse(IDs);
 
-                    //// set up frame
-                    //AnimatedProperty property = newClip.animatedProperties[ID];
-
-                    //FrameData frame = (FrameData)JsonUtility.FromJson(trimmedLine, property.frameType);
-
-                    string trimmed = line.Substring(frameString.Length, line.Length - frameString.Length);
-                    List<object> objects = (List<object>)SpeedyJson.readObject(trimmed);
+                    List<object> objects = (List<object>)SpeedyJson.readObject(line, frameString.Length, out int ignored);  // Faster if I don't cut out a substring; less garbage collection
 
                     AnimatedProperty property = newClip.animatedProperties[(int)objects[0]];
-
-                    //FrameData frame = property.frameDataFactory(property, (float)objects[1]);
-                    //FrameData frame = AnimatedProperty.frameDataFactory(property, (float)objects[1], property.frameTypeString);
 
                     // Is this slow?
                     FrameData frame = (FrameData)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(property.frameType);
@@ -193,12 +206,6 @@ public class PlaybackGameplay : MonoBehaviour
                     frame.time = (float)objects[1];
 
                     frame.ds = (string)objects[2];
-
-                    //FrameData frame = new FrameData(objects[1], property);
-
-                    // set up frame
-
-                    //frame.setProperty(property);
 
                     property.frames.Add(frame);
 
@@ -626,6 +633,7 @@ public class PlaybackGameplay : MonoBehaviour
         }
 
         public abstract void playBack();
+        //public virtual void playBack() { }
         
         public virtual string ToJson()
         {
@@ -829,7 +837,9 @@ public class PlaybackGameplay : MonoBehaviour
     void Start()
     {
 
-        string clipName = "Pacman Test";
+        string clipName = "PacmanRecording";
+
+        //print("Date time:" + System.DateTime.Now);
 
 
         //string input = "L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1|2.222|3,]";
@@ -853,7 +863,7 @@ public class PlaybackGameplay : MonoBehaviour
 
         //setTestPlayback();
 
-        if (recordingNotPlayback)
+        if (recordingMode)
             clip = setUpRecording(clipName);
         else
             clip = setUpPlayback(clipName);
@@ -958,6 +968,10 @@ public class PlaybackGameplay : MonoBehaviour
             return output;
         }
 
+
+        // TODO: This is still slow. Look into getting rid of all string spawning and just using static char[] arrays.
+        // -Will need to rewrite a bunch of functions, especially System.Convert.ChangeType(str, typeof(int));. How to do that with chars?
+        // -chars to numbers https://stackoverflow.com/a/21587247 and concatenating them, just multiply by 10 and add https://stackoverflow.com/a/26853517
         /// <summary>
         /// Takes a pseudo json string, returns an object (or null plus console errors). See the const strings of this class for supported types
         /// </summary>
@@ -1169,7 +1183,7 @@ public class PlaybackGameplay : MonoBehaviour
     }
     public void setTestPlayback()
     {
-        testClip = Clip.loadClip("Pacman Test Ghost");
+        testClip = Clip.loadClip("Pacman Test Ghost", fileNumber);
 
         testClip.animatedProperties[0].linkLoadedPropertyToObject(ghosts[0].gameObject);
         testClip.animatedProperties[1].linkLoadedPropertyToObject(ghosts[0].gameObject);
@@ -1209,7 +1223,7 @@ public class PlaybackGameplay : MonoBehaviour
     {
         float startTime = Time.realtimeSinceStartup;
         print("Starting loading");
-        Clip newClip = Clip.loadClip(clipName);
+        Clip newClip = Clip.loadClip(clipName, fileNumber);
         print("Clip generation time " + (Time.realtimeSinceStartup - startTime).ToString("F6"));
         startTime = Time.realtimeSinceStartup;
 
@@ -1259,9 +1273,9 @@ public class PlaybackGameplay : MonoBehaviour
         //fieldInfo.SetValue(objBase, frameCount % 4);
         //propertyInfo.SetValue(objBase, new Vector3(frameCount % 4, frameCount % 4, frameCount % 4));
 
-        if (activelyRecordingOrPlaying)
+        if (active)
         {
-            if (recordingNotPlayback)
+            if (recordingMode)
                 clip.recordFrame(Time.realtimeSinceStartup);
             else
             {
@@ -1272,16 +1286,16 @@ public class PlaybackGameplay : MonoBehaviour
                     property.frames[frameCount].playBack();
                 }
                 frameCount++;
-                if (frameCount >= 900)
+                //if (frameCount >= 900)
                 //if (frameCount >= 1600)
-                    frameCount = 0;
+                //    frameCount = 0;
             }
         }
     }
 
     private void OnDestroy()
     {
-        if (recordingNotPlayback)
+        if (recordingMode)
         {
             print("Saving animation data");
             clip.saveClip();

@@ -138,6 +138,29 @@ TODO
 -The "paused" bool and ghost spin float are blank... That damn unity Json tool again... 
 	-I'll try swapping it out here and there tomorrow
 	
+NEW JSON: Utf8Json
+https://github.com/neuecc/Utf8Json/releases
+https://github.com/neuecc/Utf8Json#for-unity
+	
+	
+MY OWN PARSER
+Types:			name:value,
+	-string  	"string"
+	-float   	0.0
+	-int     	0
+	-enums 		0
+	-bool		0/1
+	-Transform	0,0,0-0,0,0-0,0,0,0
+	-Vector3	0,0,0
+	CONTAINERS
+		-Lists	L|item|item
+		-Dictionaries D|key|value|key|
+
+-Need to establish types in a string in the Property
+-backslashes cause special characters to be ignored in strings
+	-special characters: "
+	
+	
 	
 TODO LATER:
 -replace audio system with oculus VR high fidelity audio system (or steam's, with their occlusion system?)

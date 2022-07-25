@@ -753,6 +753,29 @@ public class PlaybackGameplay : MonoBehaviour
         string clipName = "Pacman Test";
 
 
+        //string json = "F\"te\",st\"";
+        //string typeString = "string";
+        //print("speedyJson: Input " + json + " Output: " + speedyJson.read(json, typeString));
+        //print("SpeedyJson Output: " + speedyJson.read("F\"te\",st\""));
+
+        //object output = SpeedyJson.readObject("L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1,2.222,3,TF:0,0,0 0,0,0 0,0,0,0,E:Direction,Up]");
+        //object output = SpeedyJson.readObject("L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1|2.222|3,TF:1|2|3 4|5|6 7|8|9.9,]");
+
+        string input = "L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1|2.222|3,]";
+        print("input " + input);
+        object output = SpeedyJson.readObject(input);
+        print("output " + output);
+        foreach (object obj in (List<object>)output)
+        {
+            if (obj != null)
+            print("obj " + obj + " type " + obj.GetType());
+        }
+
+        //print("SS TEST " + speedyJson.SS("TEST string GOES here", 0, "ES"));
+        //print("SS TEST " + speedyJson.SS("TEST string GOES here", 1, "eS"));
+        //print("SS TEST " + speedyJson.SS("TEST string GOES here", 2, "ES"));
+
+
 
         //setTestRecording();
 
@@ -765,6 +788,224 @@ public class PlaybackGameplay : MonoBehaviour
 
     }
 
+
+    /// <summary>
+    /// A simple converter for a short list of primitive and unity data types, for saving/loading animation frame data. (Since Unity json just can't do object[] arrays and some object types, and newtonSoft jason is slow as hell. (They're both slow really; My loader, using both Jsons, takes 4.3 seconds to load 70 seconds of recorded pacman gameplay))
+    /// </summary>
+    // I decided to do it this way instead of using a binary serializer because those seem to be inherently insecure if your input is uncontrolled; This is safer for users. 
+    public class SpeedyJson
+    {
+        /// <summary>
+        /// Separates objects
+        /// </summary>
+        const string separator = ",";
+
+        /// <summary>
+        /// Separates sub properties and fields of a class, like individual values in a vector3 or Transform
+        /// </summary>
+        const string separatorProperty = "|";
+        /// <summary>
+        /// Separates groups of properties, like 3 floats making a vector 3 in a transform
+        /// </summary>
+        //const string separatorProperty2 = " ";
+
+        // types to convert
+        const string listStart = "L[";
+        const string listEnd = "]";
+
+        // TODO: An array reader (to save on garbage collection from List to Array conversions)
+
+        const string stringStart = "S:\"";
+        const string stringEnd = "\"";
+
+        const string intStart = "i:";
+
+        const string floatStart = "F:";
+
+        const string boolStart = "B:";
+
+        const string vector3Start = "V3:";
+
+        //const string transformStart = "TF:";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Json"></param>
+        /// <param name="typeString">The string included in the AnimatedParameter describing what sort of objects to expect</param>
+        /// <returns></returns>
+        //public static object read(string Json, string typeString)
+        public static object readObject(string Json)
+        {
+            return readObject(Json, 0, out int unusedVar);
+        }
+        public static object readObject(string Json, int objectStart, out int objectEnd)
+        {
+            object result = null;
+            //objectEnd = objectStart + 1;
+            objectEnd = Json.Length;
+
+            if (objectStart >= Json.Length)
+            { }
+            else if (SS(Json, objectStart, listStart))  // List found
+            {
+                List<object> objects = new List<object>();
+                int i = objectStart + listStart.Length;
+
+                while (i < Json.Length)
+                {
+                    if (SS(Json, i, listEnd))
+                    {
+                        objectEnd = i + listEnd.Length;
+                        break;
+                    }
+                    else if (SS(Json, i, separator))  // honestly the commas are just there for human readability; they aren't required
+                    {
+                        i++;
+                        continue;
+                    }
+
+                    int objectEnd1;
+                    object obj = readObject(Json, i, out objectEnd1);
+
+                    objects.Add(obj);
+                    i = objectEnd1;
+                }
+
+                result = objects;
+            }
+            else if (SS(Json, objectStart, stringStart))    // String found
+            {
+                int strStart = objectStart + stringStart.Length;
+                int i = strStart;
+
+                while (i < Json.Length)
+                {
+                    if (Json[i] == '\\')
+                    {
+                        i += 2;
+                        continue;
+                    }
+
+                    if (SS(Json, i, stringEnd))
+                    {
+                        objectEnd = i + stringEnd.Length;
+                        result = Json.Substring(strStart, i - strStart);
+                        break;
+                    }
+                    i++;
+                }
+            }
+            else if (SS(Json, objectStart, intStart))    // Int found
+            {
+                objectEnd = Json.IndexOf(separator, objectStart) + 1;
+                string str = Json.Substring(objectStart + intStart.Length, objectEnd - objectStart - 1 - intStart.Length);
+                
+                result = System.Convert.ChangeType(str, typeof(int));
+            }
+            else if (SS(Json, objectStart, floatStart))    // Float found
+            {
+                objectEnd = Json.IndexOf(separator, objectStart) + 1;
+                string str = Json.Substring(objectStart + floatStart.Length, objectEnd - objectStart - 1 - floatStart.Length);
+
+                //print("str " + str);
+                result = System.Convert.ChangeType(str, typeof(float));
+            }
+            else if (SS(Json, objectStart, boolStart))    // Bool found
+            {
+                objectEnd = Json.IndexOf(separator, objectStart) + 1;
+                string str = Json.Substring(objectStart + boolStart.Length, objectEnd - objectStart - 1 - boolStart.Length);
+
+                //print("str " + str);
+                result = System.Convert.ToBoolean(System.Convert.ChangeType(str, typeof(int)));
+            }            
+            else if (SS(Json, objectStart, vector3Start))    // Vector3 found
+            {
+                objectEnd = Json.IndexOf(separator, objectStart) + 1;
+                string str = Json.Substring(objectStart + vector3Start.Length, objectEnd - objectStart - 1 - vector3Start.Length);
+
+                //print("str " + str);
+                result = stringToVector3(str);
+            }
+            //else if (SS(Json, objectStart, transformStart))    // Transform found
+            //{
+            //    objectEnd = Json.IndexOf(separator, objectStart) + 1;
+            //    int vec3End = Json.IndexOf(separatorProperty2, objectStart);
+            //    string str = Json.Substring(objectStart + transformStart.Length, vec3End - objectStart - transformStart.Length);
+            //    print("str " + str);
+            //    Vector3 pos = stringToVector3(str);
+
+            //    int vec3Start = vec3End;
+            //    vec3End = Json.IndexOf(separatorProperty2, vec3Start + 1);
+            //    str = Json.Substring(vec3Start + 1, vec3End - vec3Start);
+            //    print("str " + str);
+            //    Vector3 scale = stringToVector3(str);
+
+            //    print(" " + vec3End + " " + (objectEnd - vec3End) + " end " + objectEnd);
+            //    str = Json.Substring(vec3End + 1, objectEnd - vec3End - 2);
+            //    print("str " + str);
+            //    Vector3 rot = stringToVector3(str);
+
+
+            //    print("TF " + new Transform(pos, scale, rot));  // Ah shit you can't make new transforms...
+            //    //print("str " + str);
+            //    result = stringToVector3(str);
+            //}
+            else           // object not recognized
+            {
+                objectEnd = Json.IndexOf(separator, objectStart) + 1;
+                if (objectEnd <= 0)
+                {
+                    objectEnd = Json.Length;
+                    return result;
+                }
+
+                Debug.LogError("Object at " + objectStart + " not recognized; string \"" + Json.Substring(objectStart, objectEnd - objectStart) + "\" in json string \"" + Json + "\".");
+            }
+
+
+
+            return result;
+        }
+
+        public static Vector3 stringToVector3(string Json)
+        {
+            int next0 = 0;
+            int next1 = Json.IndexOf(separatorProperty);
+            string str = Json.Substring(next0, next1);
+            //print("str " + str);
+            float one = (float)System.Convert.ChangeType(str, typeof(float));
+
+            next0 = Json.IndexOf(separatorProperty, next1 + 1);
+            str = Json.Substring(next1 + 1, next0 - 2);
+            //print("str " + str);
+            float two = (float)System.Convert.ChangeType(str, typeof(float));
+
+            str = Json.Substring(next0 + 1, Json.Length - (next0 + 1));
+            //print("str " + str);
+            float three = (float)System.Convert.ChangeType(str, typeof(float));
+
+            return new Vector3(one, two, three);
+        }
+
+        /// <summary>
+        /// SubstringSearch
+        /// </summary>
+        /// <param name="sourceString"></param>
+        /// <param name="searchString"></param>
+        /// <returns></returns>
+        public static bool SS(string sourceString, int startingChar, string searchString)
+        {
+            int i = 0;
+            foreach(char c in searchString)
+            {
+                if (c != sourceString[startingChar + i++])
+                    return false;
+            }
+
+            return true;
+        }
+    }
 
 
 

@@ -664,7 +664,9 @@ public class PlaybackGameplay : MonoBehaviour
                 data = ((PropertyInfo)property.obj).GetValue(property.animatedComponent);
             }
             //ds = JsonUtility.ToJson(data);  // idk why this works, while converting the whole object leaves out the data part, but it works.
-            ds = JsonConvert.SerializeObject(data, Formatting.None, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });   // otherwise it throws a "self referencing loop detected" exception and dies. Unity Json didn't do this >__>
+            //ds = JsonConvert.SerializeObject(data, Formatting.None, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });   // otherwise it throws a "self referencing loop detected" exception and dies. Unity Json didn't do this >__>  // Too slow
+
+            ds = SpeedyJson.toString(data);
         }
 
         public override void playBack() 
@@ -681,17 +683,36 @@ public class PlaybackGameplay : MonoBehaviour
 
         public override void loadedFromJson()
         {
-            if (property.obj is FieldInfo)
+            //if (property.obj is FieldInfo)
+            //{
+            //    if (data == null)
+            //        //data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
+            //        data = JsonConvert.DeserializeObject(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
+            //}
+            //else if (property.obj is PropertyInfo)
+            //{
+            //    if (data == null)
+            //        //data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
+            //        data = JsonConvert.DeserializeObject(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
+            //}
+            if (data == null)
             {
-                if (data == null)
-                    //data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
-                    data = JsonConvert.DeserializeObject(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
-            }
-            else if (property.obj is PropertyInfo)
-            {
-                if (data == null)
-                    //data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
-                    data = JsonConvert.DeserializeObject(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
+                data = SpeedyJson.readObject(ds);
+
+                if (data is int)
+                {
+                    // Check if this int should be an enum >__> Stupid casting rules...
+                    System.Type type;
+                    if (property.obj is FieldInfo)
+                        type = ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType();
+                    else
+                        type = ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType();
+
+                    //if (type == typeof(System.Enum))  // doesn't work
+                    if (type != typeof(int))
+                        data = ((IList)System.Enum.GetValues(type))[(int)data]; // The only way to cast ints to unknown enums I think. lmao. https://stackoverflow.com/questions/23596490/cannot-apply-indexing-with-to-an-expression-of-type-system-array-with-c-sha#comment88091793_23597770
+                    //print("Data " + data);
+                }
             }
         }
     }
@@ -753,29 +774,21 @@ public class PlaybackGameplay : MonoBehaviour
         string clipName = "Pacman Test";
 
 
-        //string json = "F\"te\",st\"";
-        //string typeString = "string";
-        //print("speedyJson: Input " + json + " Output: " + speedyJson.read(json, typeString));
-        //print("SpeedyJson Output: " + speedyJson.read("F\"te\",st\""));
+        //string input = "L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1|2.222|3,]";
+        //print("input " + input);
+        //object output = SpeedyJson.readObject(input);
+        //print("output " + output);
+        //foreach (object obj in (List<object>)output)
+        //{
+        //    if (obj != null)
+        //    print("obj " + obj + " type " + obj.GetType());
+        //}
+        //print("Objects to string: " + SpeedyJson.toString(output));
 
-        //object output = SpeedyJson.readObject("L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1,2.222,3,TF:0,0,0 0,0,0 0,0,0,0,E:Direction,Up]");
-        //object output = SpeedyJson.readObject("L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1|2.222|3,TF:1|2|3 4|5|6 7|8|9.9,]");
 
-        string input = "L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1|2.222|3,]";
-        print("input " + input);
-        object output = SpeedyJson.readObject(input);
-        print("output " + output);
-        foreach (object obj in (List<object>)output)
-        {
-            if (obj != null)
-            print("obj " + obj + " type " + obj.GetType());
-        }
-        print("Objects to string: " + SpeedyJson.toString(output));
-
-        //print("SS TEST " + speedyJson.SS("TEST string GOES here", 0, "ES"));
-        //print("SS TEST " + speedyJson.SS("TEST string GOES here", 1, "eS"));
-        //print("SS TEST " + speedyJson.SS("TEST string GOES here", 2, "ES"));
-
+        //ghosts[0].direction = System.Convert.ChangeType(1, enum);
+        //ghosts[0].direction = (System.Enum)1;
+        //ghosts[0].direction = (System.Enum)System.Convert.ChangeType(1, typeof(System.Enum));
 
 
         //setTestRecording();
@@ -859,7 +872,7 @@ public class PlaybackGameplay : MonoBehaviour
                 }
                 output += stringStart + new string(str.ToArray()) + stringEnd + separator;
             }
-            else if (obj is int)
+            else if (obj is int || obj is System.Enum)
             {
                 output += intStart + (int)obj + separator;
             }
@@ -898,6 +911,7 @@ public class PlaybackGameplay : MonoBehaviour
         }
         public static object readObject(string Json, int objectStart, out int objectEnd)
         {
+            //print("Json string " + Json);
             object result = null;
             //objectEnd = objectStart + 1;
             objectEnd = Json.Length;
@@ -1038,11 +1052,14 @@ public class PlaybackGameplay : MonoBehaviour
             //print("str " + str);
             float one = (float)System.Convert.ChangeType(str, typeof(float));
 
-            next0 = Json.IndexOf(separatorProperty, next1 + 1);
-            str = Json.Substring(next1 + 1, next0 - 2);
+            next0 = Json.IndexOf(separatorProperty, next1+1);
+            //str = Json.Substring(next1 + 1, next0 - 2);
+            //print("next0 " + next0 + " next1 " + next1);
+            str = Json.Substring(next1 + 1, next0 - next1 - 1);
             //print("str " + str);
             float two = (float)System.Convert.ChangeType(str, typeof(float));
 
+            //print("next0 " + next0 + " next1 " + next1);
             str = Json.Substring(next0 + 1, Json.Length - (next0 + 1));
             //print("str " + str);
             float three = (float)System.Convert.ChangeType(str, typeof(float));
@@ -1197,9 +1214,9 @@ public class PlaybackGameplay : MonoBehaviour
                     property.frames[frameCount].playBack();
                 }
                 frameCount++;
-                //if (frameCount >= 450)
+                if (frameCount >= 900)
                 //if (frameCount >= 1600)
-                //    frameCount = 0;
+                    frameCount = 0;
             }
         }
     }

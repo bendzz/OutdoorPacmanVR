@@ -286,7 +286,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a5bcdaf7361acd4da503533bed1a6eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activelyRecordingOrPlaying: 0
+  activelyRecordingOrPlaying: 1
   recordingNotPlayback: 0
   transforms:
   - {fileID: 327659349}

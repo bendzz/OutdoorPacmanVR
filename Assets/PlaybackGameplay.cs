@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+//using System.Runtime.Serialization;
 
 //using System.Text.Json;
 //using System.Text.Json.Serialization;
@@ -164,24 +165,44 @@ public class PlaybackGameplay : MonoBehaviour
                 }
                 else if (type.Contains(frameString))
                 {
-                    // get frame ID
-                    string IDSearch = "\"ID\":";
-                    int s0 = line.IndexOf(IDSearch) + IDSearch.Length;
-                    int s1 = line.IndexOf(",", s0);
-                    string IDs = line.Substring(s0, s1 - s0);
-                    int ID = int.Parse(IDs);
+                    //// get frame ID
+                    //string IDSearch = "\"ID\":";
+                    //int s0 = line.IndexOf(IDSearch) + IDSearch.Length;
+                    //int s1 = line.IndexOf(",", s0);
+                    //string IDs = line.Substring(s0, s1 - s0);
+                    //int ID = int.Parse(IDs);
 
+                    //// set up frame
+                    //AnimatedProperty property = newClip.animatedProperties[ID];
 
-                    // set up frame
-                    AnimatedProperty property = newClip.animatedProperties[ID];
+                    //FrameData frame = (FrameData)JsonUtility.FromJson(trimmedLine, property.frameType);
 
+                    string trimmed = line.Substring(frameString.Length, line.Length - frameString.Length);
+                    List<object> objects = (List<object>)SpeedyJson.readObject(trimmed);
 
+                    AnimatedProperty property = newClip.animatedProperties[(int)objects[0]];
 
-                    FrameData frame = (FrameData)JsonUtility.FromJson(trimmedLine, property.frameType);
+                    //FrameData frame = property.frameDataFactory(property, (float)objects[1]);
+                    //FrameData frame = AnimatedProperty.frameDataFactory(property, (float)objects[1], property.frameTypeString);
+
+                    // Is this slow?
+                    FrameData frame = (FrameData)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(property.frameType);
+
 
                     frame.setProperty(property);
+                    frame.time = (float)objects[1];
+
+                    frame.ds = (string)objects[2];
+
+                    //FrameData frame = new FrameData(objects[1], property);
+
+                    // set up frame
+
+                    //frame.setProperty(property);
 
                     property.frames.Add(frame);
+
+
                 }
                 else
                     Debug.LogError("Couldn't determine type of file line " + line);
@@ -304,6 +325,7 @@ public class PlaybackGameplay : MonoBehaviour
 
             type = obj.GetType();
             typeString = type.ToString();
+            //typeString = JsonConvert.ToString(type);    // throws error
 
             frames = new List<FrameData>();
 
@@ -531,24 +553,36 @@ public class PlaybackGameplay : MonoBehaviour
             //frame = new (FrameType)(ID, this);  // TODO how? Automated type setup?
 
             if (obj is Transform)
-            {
                 frame = new TransformFrame(this, time);
-            }
             else if (obj is FieldInfo)
-            {
                 frame = new GenericFrame(this, time);
-            } else if (obj is PropertyInfo)
-            {
+            else if (obj is PropertyInfo)
                 frame = new GenericFrame(this, time);
-            } else if (obj is MethodInfo)
-            {
-                // Methods can't be live recorded (I think), their frames are added via code
-            }
+            else if (obj is MethodInfo) { }
+            // Methods can't be live recorded (I think), their frames are added via code
             else
                 Debug.LogError("unknown frameData type attempting to be created for: " + obj + " of type: " + obj.GetType());
 
             return frame;
         }
+        ///// <summary>
+        ///// Yes I hate that there are 2 factories >__> This one's needed for loading frames in before properties have been linked to their objects yet
+        ///// </summary>
+        //public static FrameData frameDataFactory(AnimatedProperty parent, float time, string frameTypeStr)
+        //{
+        //    FrameData frame = null;
+
+        //    if (frameTypeStr.Equals("PlaybackGameplay+TransformFrame"))
+        //        frame = new TransformFrame(parent, time);
+        //    else if (frameTypeStr.Equals("PlaybackGameplay+GenericFrame"))
+        //        frame = new GenericFrame(parent, time);
+        //    //else if (frameTypeStr.Equals("PlaybackGameplay+MethodFrame"))
+        //    //    frame = new MethodFrame(parent, time);    // TODO
+        //    else
+        //        Debug.LogError("unknown frameData type attempting to be created for: " + frameTypeStr);
+
+        //    return frame;
+        //}
 
 
         public string ToJson()
@@ -581,7 +615,8 @@ public class PlaybackGameplay : MonoBehaviour
     {
         public int ID;
         public float time;
-        protected AnimatedProperty property;
+        public string ds;
+        protected AnimatedProperty property;    // protected so that the Json converters don't see it
 
         public FrameData(float _time, AnimatedProperty _property)
         {
@@ -594,7 +629,13 @@ public class PlaybackGameplay : MonoBehaviour
         
         public virtual string ToJson()
         {
-            return JsonUtility.ToJson(this);
+            //return JsonUtility.ToJson(this);
+            //List<object> frame = new List<object>();
+            //frame.Add(ID);
+            //frame.Add(time);
+            //frame.Add()
+
+            return SpeedyJson.toString(new List<object> { ID, time, ds });
         }
 
         /// <summary>
@@ -607,6 +648,7 @@ public class PlaybackGameplay : MonoBehaviour
         public void setProperty(AnimatedProperty _property)
         {
             property = _property;
+            ID = property.ID;
         }
     }
     /// <summary>
@@ -629,6 +671,8 @@ public class PlaybackGameplay : MonoBehaviour
             lPos = obj.localPosition;
             lScal = obj.localScale;
             lRot = obj.localRotation;
+
+            ds = SpeedyJson.toString(new List<object> { lPos, lScal, lRot.eulerAngles });
         }
 
         public override void playBack()
@@ -638,6 +682,18 @@ public class PlaybackGameplay : MonoBehaviour
             obj.localPosition = lPos;
             obj.localScale = lScal;
             obj.localRotation = lRot;
+        }
+
+        public override void loadedFromJson()
+        {
+            List<object> objs = (List<object>)SpeedyJson.readObject(ds);
+            Transform obj = (Transform)property.obj;
+
+            lPos = (Vector3)objs[0];
+            lScal = (Vector3)objs[1];
+            lRot = Quaternion.Euler((Vector3)objs[2]);
+
+            //print("transform frame DS " + ds + " pos " + objs[0].ToString());
         }
     }
     /// <summary>
@@ -649,7 +705,7 @@ public class PlaybackGameplay : MonoBehaviour
         /// <summary>
         /// "data string", for to and from Json
         /// </summary>
-        public string ds;
+        //public string ds;
 
 
         public GenericFrame(AnimatedProperty _property, float _time) : base(_time, _property)
@@ -729,12 +785,13 @@ public class PlaybackGameplay : MonoBehaviour
         /// <summary>
         /// "paramtersString"
         /// </summary>
-        public string ps;
+        //public string ps;
 
         public MethodFrame(object[] _parameters, AnimatedProperty _property, float _time) : base(_time, _property)
         {
             parameters = _parameters;
-            ps = JsonConvert.SerializeObject(parameters);   // Had to switch to a new json library here because unity json just *would not* export a list of objects
+            //ps = JsonConvert.SerializeObject(parameters);   // Had to switch to a new json library here because unity json just *would not* export a list of objects
+            ds = JsonConvert.SerializeObject(parameters);   // Had to switch to a new json library here because unity json just *would not* export a list of objects
         }
 
         public override void playBack()
@@ -744,7 +801,8 @@ public class PlaybackGameplay : MonoBehaviour
 
         public override void loadedFromJson()
         {
-            parameters = JsonConvert.DeserializeObject<object[]>(ps);
+            //parameters = JsonConvert.DeserializeObject<object[]>(ps);
+            parameters = JsonConvert.DeserializeObject<object[]>(ds);
 
             // So this netwon json library likes to pull out ints as int64. That screws up functions expecting an int, ie int32
             for (int i = 0; i < parameters.Length; i++)
@@ -1172,7 +1230,7 @@ public class PlaybackGameplay : MonoBehaviour
 
         newClip.animatedProperties[i++].linkLoadedPropertyToObject(Game.instance.gameObject);
         newClip.animatedProperties[i++].linkLoadedPropertyToObject(Game.instance.gameObject);
-        print("property convertion time " + (Time.realtimeSinceStartup - startTime).ToString("F6"));
+        print("property conversion time " + (Time.realtimeSinceStartup - startTime).ToString("F6"));
 
         return newClip;
     }

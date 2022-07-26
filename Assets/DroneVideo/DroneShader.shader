@@ -70,7 +70,8 @@ Shader "Unlit/DroneShader"
                 dark -= .3;
                 //game.bg += dark.r * .5;
 
-                game *= .3;
+                //game *= .3;
+                game *= .7;
                 game += col;
 
                 // apply fog

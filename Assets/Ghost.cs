@@ -255,7 +255,7 @@ public class Ghost : MonoBehaviour
             if (spawnDotCounter >= spawnDotLimit)
             {
                 state = State.spawning;
-                print("spawnDotLimit " + spawnDotLimit + " reached! Spawning " + ghost);
+                //print("spawnDotLimit " + spawnDotLimit + " reached! Spawning " + ghost);    // useful but annoying in recordings
             }
             //if (ghost == Name.blinky)
             //    state = State.spawning;

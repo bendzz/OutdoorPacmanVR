@@ -137,6 +137,9 @@ TODO July 25th
 -Try ReadAllInes
 -Use a static Char[] array instead of a list
 	
+	140 is when 31-45 nav file really starts..?
+	
+	
 TODO
 -Uninstall Wondershare Filmora? Seems pretty useless since my CPU's too old
 	

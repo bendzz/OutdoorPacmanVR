@@ -39,7 +39,8 @@ public class Record : MonoBehaviour
     /// </summary>
     public static Record instance;
 
-
+    [Tooltip("Temporary, just for lining up clips")]
+    public float clipTime;
 
     /// <summary>
     /// Animation clips -> AnimatedObjects -> AnimatedPropertys -> FrameData // TODO
@@ -916,7 +917,7 @@ public class Record : MonoBehaviour
 
 
 
-
+    public float playbackSpeed = 1;
 
 
     int frameCount = 0; // temp
@@ -1372,7 +1373,7 @@ public class Record : MonoBehaviour
             else
             {
                 //print("clip time " + clip.time);
-                clip.time += Time.deltaTime;
+                clip.time += Time.deltaTime * playbackSpeed;
                 clip.playFrame();
                 // TODO a playback function
                 //foreach (AnimatedProperty property in clip.animatedProperties)
@@ -1384,6 +1385,8 @@ public class Record : MonoBehaviour
                 //if (frameCount >= 900)
                 //if (frameCount >= 1600)
                 //    frameCount = 0;
+
+                clipTime = clip.time;
             }
         }
     }

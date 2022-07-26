@@ -23,6 +23,7 @@ public class DroneCam : MonoBehaviour
     public float droneStart = 20;
     public float droneVideoStart = 20;  // TODO
 
+    public float playbackSpeed = 1;
 
 
     bool initialized;
@@ -85,7 +86,8 @@ public class DroneCam : MonoBehaviour
             bodyFrame.time = (float)System.Convert.ChangeType(entries[3], typeof(float));
 
             bodyFrame.lPos.x = (float)System.Convert.ChangeType(entries[4], typeof(float)) * 111139;    // longitude/latitude are each 111,139 per degree
-            bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float)) * 0.3048f;   // feet to meters
+            //bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float)) * 0.3048f;   // feet to meters
+            bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float)) *1f;   // feet to meters
             bodyFrame.lPos.z = (float)System.Convert.ChangeType(entries[5], typeof(float)) * 111139;
 
             bodyFrame.lScal = Vector3.one;
@@ -97,17 +99,27 @@ public class DroneCam : MonoBehaviour
             //bodyFrame.lRot.eulerAngles = rot;
             bodyFrame.lRot.eulerAngles = Vector3.zero;
 
-
-            if (frame0 != null)
-            {
-                // make sure the camera position is actually in my city lol
-                bodyFrame.lPos -= frame0.lPos;
-            }
-
-            bodyProperty.frames.Add(bodyFrame);
+            //print("i " + i + " line " + line);
 
             if (i == 2)
                 frame0 = bodyFrame;
+
+            //print("bodyFrame.lPos " + bodyFrame.lPos);
+
+            if (frame0 != null && frame0 != bodyFrame)
+            {
+                //print("frame0.lPos " + frame0.lPos);
+                // make sure the camera position is actually in my city lol
+                bodyFrame.lPos -= frame0.lPos;
+            }
+            //print("bodyFrame.lPos " + bodyFrame.lPos);
+
+            if (frame0 != bodyFrame) 
+                bodyFrame.lPos.x = -bodyFrame.lPos.x;   // longitude is inverted
+
+            bodyProperty.frames.Add(bodyFrame);
+
+
 
 
 
@@ -121,7 +133,9 @@ public class DroneCam : MonoBehaviour
 
             gimbalFrame.lScal = Vector3.one;
 
-            rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
+            //rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
+            rot = new Vector3((float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
+            //rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[56], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
 
             // gimbal rotation is absolute value, not additive with the drone body
             gimbalFrame.lRot.eulerAngles = rot;
@@ -143,15 +157,41 @@ public class DroneCam : MonoBehaviour
             loadDroneFile();    // initialize after Record has loaded its stuff
 
             Record.instance.clip.time = pacmanStart;
-            gimbalProperty.timeOffset = droneStart - pacmanStart;
             videoPlayer.time = droneVideoStart;
+
+            //bodyProperty.timeOffset = droneStart - pacmanStart;
+            //gimbalProperty.timeOffset = droneStart - pacmanStart;
+
+
+
         }
+
 
         if (!recorder.active || !recorder.recordingMode)
         {
+            Record.instance.playbackSpeed = playbackSpeed;
+
+            bodyProperty.timeOffset = droneStart - pacmanStart;
+            gimbalProperty.timeOffset = droneStart - pacmanStart;
+
+            //videoPlayer.time = (Record.instance.clip.time - pacmanStart) + droneVideoStart;
 
 
+            {
+                int i = 0;
+                foreach (Record.TransformFrame frame in bodyProperty.frames)
+                {
+                    if (i < bodyProperty.frames.Count - 1)
+                    {
+                        //Debug.DrawLine(frame.lPos, ((Record.TransformFrame)bodyProperty.frames[i + 1]).lPos, Color.red, 200);
+                        Vector3 pos1 = droneBody.parent.TransformPoint(frame.lPos);
+                        Vector3 pos2 = droneBody.parent.TransformPoint(((Record.TransformFrame)bodyProperty.frames[i + 1]).lPos);
 
+                        Debug.DrawLine(pos1, pos2, Color.red);
+                    }
+                    i++;
+                }
+            }
         }
     }
 

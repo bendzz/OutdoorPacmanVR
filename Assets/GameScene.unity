@@ -299,8 +299,10 @@ MonoBehaviour:
   - {fileID: 244085029}
   - {fileID: 796741952}
   - {fileID: 1810339347}
-  fileNumber: 7
+  fileNumber: 8
   animationLength: 102.8
+  clipTime: 0
+  playbackSpeed: 1
 --- !u!4 &244085028 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5937805069398453258, guid: a1d40edb0633b774ca6d38096e3de65e, type: 3}
@@ -639,14 +641,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 425854227}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1894786365}
   m_Father: {fileID: 1857164291}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &425854229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -668,7 +670,11 @@ MonoBehaviour:
   droneVideo: {fileID: 8400000, guid: 116c8c1efd50bb24d9e12698463dcda0, type: 2}
   droneShader: {fileID: 4800000, guid: 89c77b28502647048a6334c27416b670, type: 3}
   droneShaderMat: {fileID: 2100000, guid: b916f5c9bb7e7f940b19caf04bce567b, type: 2}
-  droneFileName: DJIFlightRecord_2022-07-23_[07-33-24]
+  droneFileName: DJIFlightRecord_2022-07-25_[19-31-45]
+  pacmanStart: 16
+  droneStart: 126
+  droneVideoStart: 41.5
+  playbackSpeed: 1
 --- !u!20 &425854230
 Camera:
   m_ObjectHideFlags: 0
@@ -694,7 +700,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 85
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -2790,14 +2796,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2035072496}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.12, z: -4.49}
-  m_LocalScale: {x: 0.005, y: 0.05, z: 0.005}
+  m_LocalRotation: {x: 0, y: -0.7051914, z: 0, w: 0.7090171}
+  m_LocalPosition: {x: 3.8, y: -5.1, z: 4.18}
+  m_LocalScale: {x: 0.75, y: 0.75, z: 0.75}
   m_Children:
   - {fileID: 510696741}
   m_Father: {fileID: 1871404468}
   m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -89.69, z: 0}
 --- !u!1 &2073065845
 GameObject:
   m_ObjectHideFlags: 0

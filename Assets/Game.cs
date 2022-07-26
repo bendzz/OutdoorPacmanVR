@@ -584,7 +584,7 @@ public class Game : MonoBehaviour
                 timeSinceDotEaten = 0;
         }
 
-        /*
+        
         // Settings
         paused = false;
         if (OVRInput.Get(OVRInput.Button.One))
@@ -662,7 +662,7 @@ public class Game : MonoBehaviour
             } else
                 pausedMovingWorld = false;
         }
-        */
+        
 
 
 

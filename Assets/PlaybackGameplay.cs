@@ -1273,6 +1273,12 @@ public class PlaybackGameplay : MonoBehaviour
         //fieldInfo.SetValue(objBase, frameCount % 4);
         //propertyInfo.SetValue(objBase, new Vector3(frameCount % 4, frameCount % 4, frameCount % 4));
 
+        if (OVRInput.Get(OVRInput.Button.Three) && OVRInput.Get(OVRInput.Button.Four))
+        {
+            print("Saving animation data");
+            clip.saveClip();
+        }
+
         if (active)
         {
             if (recordingMode)

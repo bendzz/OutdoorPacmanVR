@@ -106,7 +106,7 @@ public class OVRPassthroughLayerEditor : Editor {
 		if (layer.colorMapEditorType == ColorMapEditorType.GrayscaleToColor)
 		{
 			// causes endless errors in the console
-			//layer.colorMapEditorGradient = EditorGUILayout.GradientField("Colorize", layer.colorMapEditorGradient);
+			layer.colorMapEditorGradient = EditorGUILayout.GradientField("Colorize", layer.colorMapEditorGradient);
 		}
 
 		if (GUI.changed)

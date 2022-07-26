@@ -11,11 +11,12 @@ using Newtonsoft.Json;
 //using System.Text.Json.Serialization;
 
 
+// TODO rename this class to "Record" later (causes issues with existing recordings atm)
 /// <summary>
 /// For recording and playing back gameplay for promotional purposes
 /// TODO rename to Recordings
 /// </summary>
-public class PlaybackGameplay : MonoBehaviour
+public class Record : MonoBehaviour
 {
     public bool active = true;
     [Tooltip("WARNING temporary, must be set before game starts. If not recording then yes playing.")]
@@ -174,6 +175,7 @@ public class PlaybackGameplay : MonoBehaviour
 
             foreach (string line in fileLines)
             {
+                //print("line " + line);
                 // check if it's a property or frame
                 int i0 = line.IndexOf("=");
                 string type = line.Substring(0, i0 + 1);
@@ -184,6 +186,9 @@ public class PlaybackGameplay : MonoBehaviour
                     // set up property
                     AnimatedProperty property = AnimatedProperty.FromJson(trimmedLine);
                     property.preLoadedProperty();
+
+                    // Make old recordings compatible
+                    property.frameTypeString = property.frameTypeString.Replace("PlaybackGameplay", "Record");
 
                     property.frameType = System.Type.GetType(property.frameTypeString);
                     property.type = System.Type.GetType(property.typeString); // not working?

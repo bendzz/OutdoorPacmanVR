@@ -19,7 +19,16 @@ public class DroneCam : MonoBehaviour
     public Material droneShaderMat;
     public string droneFileName;
 
+    public float pacmanStart = 5;
+    public float droneStart = 20;
+    public float droneVideoStart = 20;  // TODO
+
+
+
     bool initialized;
+
+    Record.AnimatedProperty bodyProperty;
+    Record.AnimatedProperty gimbalProperty;
 
     // Start is called before the first frame update
     void Start()
@@ -30,8 +39,8 @@ public class DroneCam : MonoBehaviour
     public void loadDroneFile()
     {
         initialized = true;
-        Record.AnimatedProperty bodyProperty = new Record.AnimatedProperty(droneBody.transform, droneBody.gameObject, Record.instance.clip);
-        Record.AnimatedProperty gimbalProperty = new Record.AnimatedProperty(cameraGimbal.transform, cameraGimbal.gameObject, Record.instance.clip);
+        bodyProperty = new Record.AnimatedProperty(droneBody.transform, droneBody.gameObject, Record.instance.clip);
+        gimbalProperty = new Record.AnimatedProperty(cameraGimbal.transform, cameraGimbal.gameObject, Record.instance.clip);
 
 
         string droneFilePath = Application.persistentDataPath + "/" + droneFileName + ".csv";
@@ -45,15 +54,15 @@ public class DroneCam : MonoBehaviour
 
             string[] entries = line.Split(',');
 
-            if (i == 1)
-            {
-                int e = 0;
-                foreach (string entry in entries)
-                {
-                    print("entry: " + e + ":" + entry);
-                    e++;
-                }
-            }
+            //if (i == 1)
+            //{
+            //    int e = 0;
+            //    foreach (string entry in entries)
+            //    {
+            //        print("entry: " + e + ":" + entry);
+            //        e++;
+            //    }
+            //}
 
             if (i < 2)
             {
@@ -114,6 +123,7 @@ public class DroneCam : MonoBehaviour
 
             rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
 
+            // gimbal rotation is absolute value, not additive with the drone body
             gimbalFrame.lRot.eulerAngles = rot;
 
             gimbalProperty.frames.Add(gimbalFrame);
@@ -131,6 +141,10 @@ public class DroneCam : MonoBehaviour
         if (!initialized)
         {
             loadDroneFile();    // initialize after Record has loaded its stuff
+
+            Record.instance.clip.time = pacmanStart;
+            gimbalProperty.timeOffset = droneStart - pacmanStart;
+            videoPlayer.time = droneVideoStart;
         }
 
         if (!recorder.active || !recorder.recordingMode)

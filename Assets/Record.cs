@@ -30,6 +30,9 @@ public class Record : MonoBehaviour
 
     [Tooltip("The recording number to append to the clip when loading it in.")]
     public int fileNumber;
+    [Tooltip("The animation length in seconds.")]   
+    public float animationLength;   // TODO pull this from frame data. (But what if properties have different lengths?)
+    // Also what to do about frames being out of order by their times?
 
     /// <summary>
     /// Record should be a singleton; this is its active instance
@@ -54,8 +57,8 @@ public class Record : MonoBehaviour
         /// <summary>
         /// The current playback time of the clip (loops when it reaches the end and a frame is played)
         /// </summary>
-        public float clipTime;
-        public float clipLength;
+        public float time = 0;
+        public float length;
 
 
         /// <summary>
@@ -68,6 +71,7 @@ public class Record : MonoBehaviour
         {
             name = _name;
             animatedProperties = new List<AnimatedProperty>();
+            time = 0;
         }
 
         /// <summary>
@@ -121,6 +125,27 @@ public class Record : MonoBehaviour
                 property.addNewFrame(time);
             }
         }
+
+
+        /// <summary>
+        /// (If clip time is over the length, it's reset it with modulos)
+        /// </summary>
+        public void playFrame()
+        {
+            //print("time " + time);
+            //print("length " + length);
+            if (time > length)
+                time = time % length;
+            //print("time " + time);
+
+            foreach (AnimatedProperty property in animatedProperties)
+            {
+                property.playFrame();
+                //print("property " + property.obj);
+                //property.frames[frameCount].playBack();
+            }
+        }
+
 
         // TODO
         //public void playbackAFrame(float timeDelta)
@@ -196,6 +221,7 @@ public class Record : MonoBehaviour
                     property.frameType = System.Type.GetType(property.frameTypeString);
                     property.type = System.Type.GetType(property.typeString); // not working?
 
+                    property.clip = newClip;
 
                     newClip.animatedProperties.Add(property);
                 }
@@ -243,12 +269,25 @@ public class Record : MonoBehaviour
 
 
 
+
+
+
     //}
     /// <summary>
     /// Links frameDatas to unity properties and serves as a factory for creating different FrameData types
     /// </summary>
     public class AnimatedProperty
     {
+        /// <summary>
+        /// Not all types can tween, but this will tween any set up for it.
+        /// </summary>
+        public bool tween = true;
+
+        /// <summary>
+        /// How much to offset this property from the clip's start time, if any
+        /// </summary>
+        public float timeOffset = 0;
+
         /// <summary>
         /// Which clip this property belongs to
         /// </summary>
@@ -330,6 +369,8 @@ public class Record : MonoBehaviour
 
             gameObject = _gameObject;
             gameObjectString = gameObject.name;
+
+            //print("property spawned " + obj + " clip " + clip.name);
         }
         void finishConstructor()
         {
@@ -598,6 +639,54 @@ public class Record : MonoBehaviour
         {
             frames = new List<FrameData>();
         }
+
+        /// <summary>
+        /// Assumes frames are sorted by time. (TODO)
+        /// </summary>
+        public void playFrame()
+        {
+            //print("this " + this);
+            //print("obj " + obj);
+            //print("clip " + clip.name);
+            //print("timeOffset " + timeOffset);
+            //print("clip.time " + clip.time);
+            float time = clip.time + timeOffset;
+            //print("time " + time);
+
+            int f = getFrame(time);
+            //print("F " + f);
+
+            frames[f].playBack(0, frames[0]);
+        }
+
+        public int getFrame(float time)
+        {
+            // TODO: This might be slow for bigger/complex-er animations. Can I "prime the pump" with the previous frame sometimes..?
+            FrameData frame = new FrameData(time, this);
+
+            //return frames.BinarySearch(time, new TimeComparer());
+
+            int f = frames.BinarySearch(frame, new TimeComparer());
+            //print("f " + f);
+            if (f >= 0)
+                return f;
+
+            // TODO not quite right if time is too big
+            return ~f;
+        }
+
+        public class TimeComparer : Comparer<FrameData>
+        {
+            // https://stackoverflow.com/questions/7634033/find-quickly-index-of-item-in-sorted-list
+            public override int Compare(FrameData x, FrameData y)
+            {
+                //print("x time " + x.time + " y time " + y.time);
+                //print("x.time.CompareTo(y.time) " + x.time.CompareTo(y.time));
+                return x.time.CompareTo(y.time);
+            }
+        }
+
+
     }
 
 
@@ -606,9 +695,9 @@ public class Record : MonoBehaviour
 
 
     /// <summary>
-    /// Base class for all animation frames holding arbitrary data
+    /// Base class for all animation frames holding arbitrary data. (Treat it like it's an abstract class and use its derrived types)
     /// </summary>
-    public abstract class FrameData
+    public class FrameData
     {
         public int ID;
         public float time;
@@ -622,7 +711,11 @@ public class Record : MonoBehaviour
             property = _property;
         }
 
-        public abstract void playBack();
+        /// <summary>
+        /// Play this frame mixed with the frame ahead of it
+        /// </summary>
+        /// <param name="lerpForward">The amount</param>
+        public virtual void playBack(float lerpForward, FrameData nextFrame) { }
         //public virtual void playBack() { }
         
         public virtual string ToJson()
@@ -683,13 +776,21 @@ public class Record : MonoBehaviour
             ds = SpeedyJson.toString(new List<object> { lPos, lScal, lRot.eulerAngles });
         }
 
-        public override void playBack()
+        public override void playBack(float lerpForward, FrameData nextFrame)
         {
             Transform obj = (Transform)property.obj;
 
-            obj.localPosition = lPos;
-            obj.localScale = lScal;
-            obj.localRotation = lRot;
+            Vector3 nPos = ((TransformFrame)nextFrame).lPos;
+            Vector3 nScal = ((TransformFrame)nextFrame).lScal;
+            Quaternion nRot = ((TransformFrame)nextFrame).lRot;
+
+            //obj.localPosition = lPos;
+            //obj.localScale = lScal;
+            //obj.localRotation = lRot;
+
+            obj.localPosition = Vector3.Lerp(lPos, nPos, lerpForward);
+            obj.localScale = Vector3.Lerp(lScal, nScal, lerpForward);
+            obj.localRotation = Quaternion.Slerp(lRot, nRot, lerpForward);
         }
 
         public override void loadedFromJson()
@@ -733,8 +834,9 @@ public class Record : MonoBehaviour
             ds = SpeedyJson.toString(data);
         }
 
-        public override void playBack() 
+        public override void playBack(float lerpForward, FrameData nextFrame)
         {
+            // TODO tweening
             if (property.obj is FieldInfo)
             {
                 ((FieldInfo)property.obj).SetValue(property.animatedComponent, data);
@@ -747,18 +849,6 @@ public class Record : MonoBehaviour
 
         public override void loadedFromJson()
         {
-            //if (property.obj is FieldInfo)
-            //{
-            //    if (data == null)
-            //        //data = JsonUtility.FromJson(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
-            //        data = JsonConvert.DeserializeObject(ds, ((FieldInfo)property.obj).GetValue(property.animatedComponent).GetType());
-            //}
-            //else if (property.obj is PropertyInfo)
-            //{
-            //    if (data == null)
-            //        //data = JsonUtility.FromJson(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
-            //        data = JsonConvert.DeserializeObject(ds, ((PropertyInfo)property.obj).GetValue(property.animatedComponent).GetType());
-            //}
             if (data == null)
             {
                 data = SpeedyJson.readObject(ds);
@@ -802,11 +892,11 @@ public class Record : MonoBehaviour
             ds = JsonConvert.SerializeObject(parameters);   // Had to switch to a new json library here because unity json just *would not* export a list of objects
         }
 
-        public override void playBack()
+        public override void playBack(float lerpForward, FrameData nextFrame)   // TODO
         {
             ((MethodInfo)property.obj).Invoke(property.animatedComponent, parameters);
         }
-
+        // TODO change the JSON system to SpeedyJson. (Then again... This system is more flexible, if a little slower...)
         public override void loadedFromJson()
         {
             //parameters = JsonConvert.DeserializeObject<object[]>(ps);
@@ -843,25 +933,6 @@ public class Record : MonoBehaviour
 
         string clipName = "PacmanRecording";
 
-        //print("Date time:" + System.DateTime.Now);
-
-
-        //string input = "L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1|2.222|3,]";
-        //print("input " + input);
-        //object output = SpeedyJson.readObject(input);
-        //print("output " + output);
-        //foreach (object obj in (List<object>)output)
-        //{
-        //    if (obj != null)
-        //    print("obj " + obj + " type " + obj.GetType());
-        //}
-        //print("Objects to string: " + SpeedyJson.toString(output));
-
-
-        //ghosts[0].direction = System.Convert.ChangeType(1, enum);
-        //ghosts[0].direction = (System.Enum)1;
-        //ghosts[0].direction = (System.Enum)System.Convert.ChangeType(1, typeof(System.Enum));
-
 
         //setTestRecording();
 
@@ -870,9 +941,18 @@ public class Record : MonoBehaviour
         if (recordingMode)
             clip = setUpRecording(clipName);
         else
+        {
             clip = setUpPlayback(clipName);
-
+        }
     }
+
+
+
+
+
+
+
+
 
 
     /// <summary>
@@ -1285,16 +1365,21 @@ public class Record : MonoBehaviour
 
         if (active)
         {
+            clip.length = animationLength;
+
             if (recordingMode)
                 clip.recordFrame(Time.realtimeSinceStartup);
             else
             {
+                //print("clip time " + clip.time);
+                clip.time += Time.deltaTime;
+                clip.playFrame();
                 // TODO a playback function
-                foreach (AnimatedProperty property in clip.animatedProperties)
-                {
-                    //print("property " + property.obj);
-                    property.frames[frameCount].playBack();
-                }
+                //foreach (AnimatedProperty property in clip.animatedProperties)
+                //{
+                //    //print("property " + property.obj);
+                //    property.frames[frameCount].playBack();
+                //}
                 frameCount++;
                 //if (frameCount >= 900)
                 //if (frameCount >= 1600)

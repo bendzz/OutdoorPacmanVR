@@ -151,6 +151,12 @@ TODO
 	20 yaw
 	21 yaw 360
 	
+	GIMBAL
+	54 pitch
+	55 roll
+	56 yaw
+	57 yaw 360
+	
 	Also has: altitude, xyz speed
 	
 	

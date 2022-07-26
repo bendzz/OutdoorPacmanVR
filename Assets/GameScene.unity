@@ -640,7 +640,7 @@ Transform:
   m_GameObject: {fileID: 425854227}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1894786365}
   m_Father: {fileID: 1857164291}
@@ -660,6 +660,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   recorder: {fileID: 216010506}
   droneBody: {fileID: 510696741}
+  cameraGimbal: {fileID: 1857164291}
   cam: {fileID: 425854230}
   videoPlayer: {fileID: 425854231}
   droneCam: {fileID: 8400000, guid: 25bec6fc18a253243a8ef7e4d0c68516, type: 2}
@@ -2302,7 +2303,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1857164291}
   m_Layer: 0
-  m_Name: CameraMount
+  m_Name: CameraGimbal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2789,8 +2790,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2035072496}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -41.92}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -4.49}
+  m_LocalScale: {x: 0.005, y: 0.05, z: 0.005}
   m_Children:
   - {fileID: 510696741}
   m_Father: {fileID: 1871404468}

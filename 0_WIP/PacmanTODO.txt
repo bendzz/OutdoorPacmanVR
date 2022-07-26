@@ -129,53 +129,29 @@ TODO:
 
 -Change package name in unity/oculus dash
 -Fix the floor height so walls don't warp beneath floor
+
 	
-	
-TODO
-	-make clips rename themselves if there's already one there, instead of overwriting
-	-Tomorrow I need to have it select the correct frame based on time
--Need base object reference (script) and direct property value/ref
--The "paused" bool and ghost spin float are blank... That damn unity Json tool again... 
-	-I'll try swapping it out here and there tomorrow
-	
-NEW JSON: Utf8Json
-https://github.com/neuecc/Utf8Json/releases
-https://github.com/neuecc/Utf8Json#for-unity
-	
-	
-MY OWN PARSER
-Types:			{shortName:value} // neccessary..?
-	-string  	"string"
-	-float   	0.0
-	-int     	0
-	-enums 		0
-	-bool		0/1
-	-Transform	0,0,0, 0,0,0, 0,0,0,0
-	-Vector3	0,0,0
-	CONTAINERS
-		-Lists	L|item|item
-			-T:5.10011,L[S:"test \" string",I:42,F:1.11,B:1,TF:0,0,0 0,0,0 0,0,0,0,V3:0,0,0,E:Direction,Up]
-			-T:5.10011,L[S:"test \" string",I:42,F:1.11,B:1,TF:0|0|0 0|0|0 0|0|0|0,V3:0,0,0,E:Direction,Up]
-			
-			L[S:\"test \\\" string\",i:42,F:1.11,B:1,V3:1|2.222|3,]
-			
-			L[S:"test \" string",i:42,F:1.11,B:1,V3:1|2.222|3,]
-			L[S:"test \" string",i:42,F:1.11,B:1,V3:1|2.222|3,]
-		-Dictionaries D|key|value|key|
 
 TODO July 25th
 -fix methodFrame too (to use SpeedyJson)?
 -Try ReadAllInes
 -Use a static Char[] array instead of a list
 	
-
--Need to establish types in a string in the Property
--strings
-	-Need to add convert "s to \"s on saving, and remove it on reading
-	-Need to ignore all special characters if they're within a string
-		-How?
-			-loop through and find all the variables and 
+TODO
+-Uninstall Wondershare Filmora? Seems pretty useless since my CPU's too old
 	
+	3 flytime
+	
+	4 lattitude
+	5 longitude
+	6 height
+	
+	18 pitch
+	19 roll
+	20 yaw
+	21 yaw 360
+	
+	Also has: altitude, xyz speed
 	
 	
 TODO LATER:
@@ -185,3 +161,5 @@ TODO LATER:
 -Anti cheat collision detection; pause and tell the player to go back when they go through a wall that would have taken more than a few tiles to get to.
 
 -Pushup to respawn? (And reset the ghosts to the house, then turn the music back on and let them respawn once the pushup is done)
+
+-Video background separation? NRN recommends this https://hkchengrex.github.io/STCN/ (video at bottom)

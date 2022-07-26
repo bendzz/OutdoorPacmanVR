@@ -30,8 +30,11 @@ public class Record : MonoBehaviour
 
     [Tooltip("The recording number to append to the clip when loading it in.")]
     public int fileNumber;
-     
 
+    /// <summary>
+    /// Record should be a singleton; this is its active instance
+    /// </summary>
+    public static Record instance;
 
 
 
@@ -577,24 +580,6 @@ public class Record : MonoBehaviour
 
             return frame;
         }
-        ///// <summary>
-        ///// Yes I hate that there are 2 factories >__> This one's needed for loading frames in before properties have been linked to their objects yet
-        ///// </summary>
-        //public static FrameData frameDataFactory(AnimatedProperty parent, float time, string frameTypeStr)
-        //{
-        //    FrameData frame = null;
-
-        //    if (frameTypeStr.Equals("PlaybackGameplay+TransformFrame"))
-        //        frame = new TransformFrame(parent, time);
-        //    else if (frameTypeStr.Equals("PlaybackGameplay+GenericFrame"))
-        //        frame = new GenericFrame(parent, time);
-        //    //else if (frameTypeStr.Equals("PlaybackGameplay+MethodFrame"))
-        //    //    frame = new MethodFrame(parent, time);    // TODO
-        //    else
-        //        Debug.LogError("unknown frameData type attempting to be created for: " + frameTypeStr);
-
-        //    return frame;
-        //}
 
 
         public string ToJson()
@@ -673,6 +658,16 @@ public class Record : MonoBehaviour
         public Vector3 lPos;
         public Vector3 lScal;
         public Quaternion lRot;
+
+        /// <summary>
+        /// For creating blank frames to manually fill out
+        /// </summary>
+        /// <param name="_property"></param>
+        public TransformFrame(AnimatedProperty _property) : base(0, _property)
+        {
+            if (!(property.obj is Transform))   // TODO can I make this a generic function that gets called by all FrameDatas?
+                Debug.LogError("Given framedata input " + property.obj + " is not type Transform");
+        }
 
         public TransformFrame(AnimatedProperty _property, float _time) : base(_time, _property)
         {
@@ -841,6 +836,10 @@ public class Record : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (instance == null)
+            instance = this;
+        else
+            Debug.LogError("There should only be one instance of record! This instance is on " + gameObject);
 
         string clipName = "PacmanRecording";
 

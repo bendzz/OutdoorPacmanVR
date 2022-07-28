@@ -57,10 +57,14 @@ Shader "Unlit/DroneShader"
 
                 col.a = 1;
                 col.g *= 0;
-                col.r *= 0.1;
+                col.r *= 0.2;
 
                 //col = col - .2;
 
+                col.g = col.b * .1;
+                //col.g = 0;
+                //col.b = 0;
+                
 
 
                 float4 darkOffset = .7;

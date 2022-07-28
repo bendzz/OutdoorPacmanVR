@@ -22,6 +22,7 @@ public class DroneCam : MonoBehaviour
     public float pacmanStart = 5;
     public float droneStart = 20;
     public float droneVideoStart = 20;  // TODO
+    public float globalStartOffset = 0;
     [Tooltip("Applied to all frames once on startup")]
     public Vector3 doneCamRotationOffset = Vector3.zero;
 
@@ -200,25 +201,18 @@ public class DroneCam : MonoBehaviour
         {
             loadDroneFile();    // initialize after Record has loaded its stuff
 
-            Record.instance.clip.time = pacmanStart;
-            videoPlayer.time = droneVideoStart;
-
-            //bodyProperty.timeOffset = droneStart - pacmanStart;
-            //gimbalProperty.timeOffset = droneStart - pacmanStart;
-
-
-
+            Record.instance.clip.time = pacmanStart + globalStartOffset;    // note: This offset affects all clip properties, including the drone ones.
+            videoPlayer.time = droneVideoStart + globalStartOffset;
         }
-
+         
 
         if (!recorder.active || !recorder.recordingMode)
         {
             Record.instance.playbackSpeed = playbackSpeed;
 
-            bodyProperty.timeOffset = droneStart - pacmanStart;
-            gimbalProperty.timeOffset = droneStart - pacmanStart;
+            bodyProperty.timeOffset = droneStart;
+            gimbalProperty.timeOffset = bodyProperty.timeOffset;
 
-            //videoPlayer.time = (Record.instance.clip.time - pacmanStart) + droneVideoStart;
 
 
             {

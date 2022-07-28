@@ -672,8 +672,9 @@ MonoBehaviour:
   droneShaderMat: {fileID: 2100000, guid: b916f5c9bb7e7f940b19caf04bce567b, type: 2}
   droneFileName: DJIFlightRecord_2022-07-25_[19-31-45]
   pacmanStart: 16
-  droneStart: 126
+  droneStart: 79.9
   droneVideoStart: 41.5
+  globalStartOffset: 30
   doneCamRotationOffset: {x: 0, y: -70, z: 0}
   playbackSpeed: 1
   wallHoleRadius: 1.5
@@ -2798,14 +2799,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2035072496}
-  m_LocalRotation: {x: -0.028296268, y: -0.9517512, z: -0.013916036, w: -0.30524647}
+  m_LocalRotation: {x: -0, y: -0.95218015, z: 0, w: -0.30553728}
   m_LocalPosition: {x: -3.15, y: 0, z: 7.65}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 510696741}
   m_Father: {fileID: 1871404468}
   m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: -0.528, y: -215.581, z: 3.575}
+  m_LocalEulerAnglesHint: {x: 0, y: -215.581, z: 0}
 --- !u!1 &2073065845
 GameObject:
   m_ObjectHideFlags: 0

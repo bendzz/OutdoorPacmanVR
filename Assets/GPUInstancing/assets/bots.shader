@@ -236,6 +236,7 @@ Shader "Custom/bots"
 
                     //float maxHeight = 1 - saturate(holeRadius - length(vecs[v] - pacmanPos) / holeRadius);
                     //float maxHeight = 1 - saturate(holeRadius - distance / holeRadius);
+                    //float maxHeight =  (distance - holeRadius) + (nearestLinePoint.y - holeRadius);
                     float maxHeight =  (distance - holeRadius);
                     if (maxHeight < 0)
                         maxHeight = 0;

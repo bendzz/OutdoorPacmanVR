@@ -143,6 +143,7 @@ TODO July 25th
 -Make a struct list of each pacman session with files, start points etc to set up the game playback
 -Turn off wall shrinking when not playing back/using drone cam
 
+-start clip 46 seconds later
 	
 	
 TODO

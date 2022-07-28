@@ -43,6 +43,9 @@ public class DroneCam : MonoBehaviour
     [System.Serializable]
     public class GameSession
     {
+        [Tooltip("WARNING: This doesn't actually set the file number in Singletons->Recording! It's just a reminder. (Too lazy to set up)")]
+        public int pacmanFileNumberREMINDER;
+        
         public float pacmanStart;
         public float droneStart;
         public float droneVideoStart;
@@ -259,6 +262,7 @@ public class DroneCam : MonoBehaviour
 
 
             {
+                // draw drone path 
                 int i = 0;
                 foreach (Record.TransformFrame frame in bodyProperty.frames)
                 {
@@ -269,6 +273,22 @@ public class DroneCam : MonoBehaviour
                         Vector3 pos2 = droneBody.parent.TransformPoint(((Record.TransformFrame)bodyProperty.frames[i + 1]).lPos);
 
                         Debug.DrawLine(pos1, pos2, Color.red);
+                    }
+                    i++;
+                }
+
+                // draw headset path 
+                i = 0;
+                Record.AnimatedProperty headProp = Record.instance.clip.animatedProperties[1];
+                Transform headset = (Transform)headProp.obj;
+                foreach (Record.TransformFrame frame in headProp.frames)
+                {
+                    if (i < headProp.frames.Count - 1)
+                    {
+                        Vector3 pos1 = headset.parent.TransformPoint(frame.lPos);
+                        Vector3 pos2 = headset.parent.TransformPoint(((Record.TransformFrame)headProp.frames[i + 1]).lPos);
+
+                        Debug.DrawLine(pos1, pos2, Color.green);
                     }
                     i++;
                 }

@@ -135,16 +135,26 @@ TODO:
 TODO July 25th
 -fix methodFrame too (to use SpeedyJson)?
 -Try ReadAllInes
--Use a static Char[] array instead of a list
+-Use a static Char[] array instead of a list (to speed up string processing for loading Clips, and minimize garbage collection)
+
 	
-	140 is when 31-45 nav file really starts..?
 -restart PC and pin davinci resolve to taskbar
 
--Make a struct list of each pacman session with files, start points etc to set up the game playback
+
 -Turn off wall shrinking when not playing back/using drone cam
 
--start clip 46 seconds later
-	
+-Record some top down gameplay, like the arcade cabinet
+
+
+
+
+
+GAME FIXES:
+(To do once I'm done with all these past recordings)
+	-The movement multiplier needs to account for OVR rig rotation, ie map rotation! (That's what's causing all the sliding). Fuck.
+		>OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));	// this line, needs to use the OVRRig rotation to change the added localPosition or something
+	-
+
 	
 TODO
 -Uninstall Wondershare Filmora? Seems pretty useless since my CPU's too old

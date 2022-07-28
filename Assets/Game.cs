@@ -404,6 +404,18 @@ public class Game : MonoBehaviour
             return Ghost.State.chase;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     // Update is called once per frame
     void Update()
     {
@@ -449,7 +461,7 @@ public class Game : MonoBehaviour
 
 
         if (cam.transform.localPosition != Vector3.zero && !disableEnhancedPlayerMovement)    // to allow moving the character to test
-            OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));
+            OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1)); // TODO: This needs to account for map rotation! Causes a "sliding sideways" feeling!
 
         //packman.transform.position = new Vector3(cam.transform.position.x, 0, cam.transform.position.z);
         //packman.transform.position = navToWorld(worldToNav(cam.transform.position));

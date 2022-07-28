@@ -690,8 +690,8 @@ MonoBehaviour:
     droneStart: -99.8
     droneVideoStart: 0
     globalStartOffset: 0
-    doneCamRotationOffset: {x: 0, y: 0, z: 0}
-    droneCamPlatformPos: {x: 1.54, y: 1.68, z: 1.79}
+    doneCamRotationOffset: {x: 0, y: 19.467, z: 0}
+    droneCamPlatformPos: {x: -1.84, y: 1.68, z: 1.6}
     droneCamPlatformRotation: {x: 0, y: -251.333, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-07-21]
     videoClip: {fileID: 32900000, guid: 96b12305877d053459fde1ab00e767e7, type: 3}
@@ -2817,7 +2817,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2035072496}
   m_LocalRotation: {x: 0, y: -0.81242466, z: 0, w: -0.58306617}
-  m_LocalPosition: {x: 1.54, y: 1.68, z: 1.79}
+  m_LocalPosition: {x: -1.84, y: 1.68, z: 1.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 510696741}

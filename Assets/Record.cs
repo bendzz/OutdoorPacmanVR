@@ -1380,18 +1380,11 @@ public class Record : MonoBehaviour
             else
             {
                 //print("clip time " + clip.time);
+                
                 clip.time += Time.deltaTime * playbackSpeed;
                 clip.playFrame();
-                // TODO a playback function
-                //foreach (AnimatedProperty property in clip.animatedProperties)
-                //{
-                //    //print("property " + property.obj);
-                //    property.frames[frameCount].playBack();
-                //}
-                frameCount++;
-                //if (frameCount >= 900)
-                //if (frameCount >= 1600)
-                //    frameCount = 0;
+
+                frameCount++;   // no longer really used..?
 
                 clipTime = clip.time;
             }

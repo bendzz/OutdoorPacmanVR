@@ -662,6 +662,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   recorder: {fileID: 216010506}
+  droneCamPlatform: {fileID: 2035072497}
   droneBody: {fileID: 510696741}
   cameraGimbal: {fileID: 1857164291}
   cam: {fileID: 425854230}
@@ -670,14 +671,19 @@ MonoBehaviour:
   droneVideo: {fileID: 8400000, guid: 116c8c1efd50bb24d9e12698463dcda0, type: 2}
   droneShader: {fileID: 4800000, guid: 89c77b28502647048a6334c27416b670, type: 3}
   droneShaderMat: {fileID: 2100000, guid: b916f5c9bb7e7f940b19caf04bce567b, type: 2}
-  droneFileName: DJIFlightRecord_2022-07-25_[19-31-45]
-  pacmanStart: 16
-  droneStart: 79.9
-  droneVideoStart: 41.5
-  globalStartOffset: 30
-  doneCamRotationOffset: {x: 0, y: -70, z: 0}
   playbackSpeed: 1
   wallHoleRadius: 1.5
+  activeGameSession: 0
+  gameSessions:
+  - pacmanStart: 16
+    droneStart: 109.8
+    droneVideoStart: 41.4
+    globalStartOffset: 30
+    doneCamRotationOffset: {x: 0, y: -65, z: 0}
+    droneCamPlatformPos: {x: -2.66, y: 0, z: 6.6}
+    droneCamPlatformRotation: {x: 0, y: -215.581, z: 0}
+    droneFileName: DJIFlightRecord_2022-07-25_[19-31-45]
+    videoClip: {fileID: 32900000, guid: d9ac26b3c946439418d58758ea507e40, type: 3}
 --- !u!20 &425854230
 Camera:
   m_ObjectHideFlags: 0
@@ -703,7 +709,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 40
+  field of view: 50
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -2800,7 +2806,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2035072496}
   m_LocalRotation: {x: -0, y: -0.95218015, z: 0, w: -0.30553728}
-  m_LocalPosition: {x: -3.15, y: 0, z: 7.65}
+  m_LocalPosition: {x: -2.66, y: 0, z: 6.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 510696741}

@@ -8,6 +8,7 @@ public class DroneCam : MonoBehaviour
 {
     public Record recorder;
 
+    public Transform droneCamPlatform;
     [Tooltip("A body for the drone so the camera can rotate freely")]
     public Transform droneBody;
     public Transform cameraGimbal;
@@ -17,14 +18,14 @@ public class DroneCam : MonoBehaviour
     public RenderTexture droneVideo;
     public Shader droneShader;
     public Material droneShaderMat;
-    public string droneFileName;
+    private string droneFileName;
 
-    public float pacmanStart = 5;
-    public float droneStart = 20;
-    public float droneVideoStart = 20;  // TODO
-    public float globalStartOffset = 0;
+    private float pacmanStart = 5;
+    private float droneStart = 20;
+    private float droneVideoStart = 20;  // TODO
+    private float globalStartOffset = 0;
     [Tooltip("Applied to all frames once on startup")]
-    public Vector3 doneCamRotationOffset = Vector3.zero;
+    private Vector3 doneCamRotationOffset = Vector3.zero;
 
     public float playbackSpeed = 1;
 
@@ -36,10 +37,51 @@ public class DroneCam : MonoBehaviour
     Record.AnimatedProperty bodyProperty;
     Record.AnimatedProperty gimbalProperty;
 
+    /// <summary>
+    /// All setup info for syncing game, drone and video replay data
+    /// </summary>
+    [System.Serializable]
+    public class GameSession
+    {
+        public float pacmanStart;
+        public float droneStart;
+        public float droneVideoStart;
+        public float globalStartOffset;
+
+        [Tooltip("Applied to all frames once on startup")]
+        public Vector3 doneCamRotationOffset;
+
+        [Tooltip("local position and rotation")]
+        public Vector3 droneCamPlatformPos;
+        public Vector3 droneCamPlatformRotation;
+
+
+        public string droneFileName;
+        public VideoClip videoClip;
+
+    };
+    [Tooltip("LPT: Most game session properties, including which session, can only be changed before startup.")]
+    public int activeGameSession;
+    public List<GameSession> gameSessions;
+
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        // sync all the data recordings
+        GameSession gs = gameSessions[activeGameSession];
+
+        pacmanStart = gs.pacmanStart;
+        droneStart = gs.droneStart;
+        droneVideoStart = gs.droneVideoStart;
+        globalStartOffset = gs.globalStartOffset;
+        doneCamRotationOffset = gs.doneCamRotationOffset;
+
+        droneCamPlatform.localPosition = gs.droneCamPlatformPos;
+        droneCamPlatform.transform.localEulerAngles = gs.droneCamPlatformRotation;
+
+        droneFileName = gs.droneFileName;
+        videoPlayer.clip = gs.videoClip;
     }
 
     public void loadDroneFile()
@@ -200,7 +242,7 @@ public class DroneCam : MonoBehaviour
         if (!initialized)
         {
             loadDroneFile();    // initialize after Record has loaded its stuff
-
+             
             Record.instance.clip.time = pacmanStart + globalStartOffset;    // note: This offset affects all clip properties, including the drone ones.
             videoPlayer.time = droneVideoStart + globalStartOffset;
         }
@@ -213,6 +255,7 @@ public class DroneCam : MonoBehaviour
             bodyProperty.timeOffset = droneStart;
             gimbalProperty.timeOffset = bodyProperty.timeOffset;
 
+            
 
 
             {

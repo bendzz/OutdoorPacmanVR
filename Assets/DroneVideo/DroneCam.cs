@@ -22,9 +22,13 @@ public class DroneCam : MonoBehaviour
     public float pacmanStart = 5;
     public float droneStart = 20;
     public float droneVideoStart = 20;  // TODO
+    [Tooltip("Applied to all frames once on startup")]
+    public Vector3 doneCamRotationOffset = Vector3.zero;
 
     public float playbackSpeed = 1;
 
+    [Tooltip("Draws a hole in the maze walls so I can see pacman")]
+    public float wallHoleRadius = 1.5f;
 
     bool initialized;
 
@@ -99,13 +103,13 @@ public class DroneCam : MonoBehaviour
             //bodyFrame.lPos.z = (float)System.Convert.ChangeType(entries[5], typeof(float)) * 111139;
 
             // longitude and latitude are too big for floats; you lose precision
-            double xPos = (double)System.Convert.ChangeType(entries[4], typeof(double));
+            double xPos = (double)System.Convert.ChangeType(entries[5], typeof(double));
             double yPos = (double)System.Convert.ChangeType(entries[6], typeof(double));
-            double zPos = (double)System.Convert.ChangeType(entries[5], typeof(double));
+            double zPos = (double)System.Convert.ChangeType(entries[4], typeof(double));
 
-            bodyFrame.lPos.x = (float)System.Convert.ChangeType(entries[4], typeof(float));
-            bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float));
-            bodyFrame.lPos.z = (float)System.Convert.ChangeType(entries[5], typeof(float));
+            //bodyFrame.lPos.x = (float)System.Convert.ChangeType(entries[4], typeof(float));
+            //bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float));
+            //bodyFrame.lPos.z = (float)System.Convert.ChangeType(entries[5], typeof(float));
 
 
 
@@ -117,7 +121,7 @@ public class DroneCam : MonoBehaviour
             // pitch roll yaw, is original input order
             // roll and pitch are inverted
             //Vector3 rot = new Vector3(-(float)System.Convert.ChangeType(entries[18], typeof(float)), (float)System.Convert.ChangeType(entries[21], typeof(float)), -(float)System.Convert.ChangeType(entries[19], typeof(float)));
-            bodyFrame.lRot.eulerAngles = Vector3.zero;
+            //bodyFrame.lRot.eulerAngles = rot;
 
 
             if (i == 2)
@@ -136,11 +140,21 @@ public class DroneCam : MonoBehaviour
 
                 // convert longitude and latitude to game coords
 
-                xPos = (xPos - startXpos) * 111139;     // longitude/latitude are each 111,139 per degree
-                yPos = (yPos - startYpos);  // * 0.3048f;   // feet to meters
-                zPos = (zPos - startZpos) * 111139;
+                //xPos = (xPos - startXpos) * 111139;     // longitude/latitude are each 111,139 per degree
+                //yPos = (yPos - startYpos) * 0.3048f;   // feet to meters
+                //zPos = (zPos - startZpos) * 111139;
 
-                bodyFrame.lPos = new Vector3((float)xPos, (float)yPos, (float)zPos);
+                // https://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
+                // https://en.wikipedia.org/wiki/Geographic_coordinate_system#Length_of_a_degree (unused)
+                double longitudeMulti = 40075000 * Mathf.Cos((float)Mathf.Deg2Rad * (float)zPos) / 360;
+                
+                xPos = (xPos - startXpos) * longitudeMulti;     // longitude/latitude are each 111,139 per degree
+                yPos = (yPos - startYpos) * 0.3048f;   // feet to meters
+                zPos = (zPos - startZpos) * 111320;
+                //zPos = (zPos - startZpos) * 111329.2;
+
+                //bodyFrame.lPos = new Vector3((float)xPos, (float)yPos, (float)zPos);
+                bodyFrame.lPos = new Vector3(-(float)xPos, (float)yPos, (float)zPos);
             }
 
             if (frame0 != bodyFrame) 
@@ -162,12 +176,13 @@ public class DroneCam : MonoBehaviour
 
             gimbalFrame.lScal = Vector3.one;
 
-            //rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
-            Vector3 rot = new Vector3((float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
-            //rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[56], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
+            Vector3 rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
+
+            rot += doneCamRotationOffset;
 
             // gimbal rotation is absolute value, not additive with the drone body
             gimbalFrame.lRot.eulerAngles = rot;
+            //gimbalFrame.lRot *= Quaternion.Euler(doneCamRotationOffset);
 
             gimbalProperty.frames.Add(gimbalFrame);
 
@@ -222,6 +237,15 @@ public class DroneCam : MonoBehaviour
                 }
             }
         }
+
+        //cam.fieldOfView = Camera.HorizontalToVerticalFieldOfView(82.1f, cam.aspect);    // set drone FOV https://www.dji.com/ca/mini-3-pro/specs
+
+        // for drawing a hole through the walls
+        GPUInstancing.Bots.botMaterial.SetVector("pacmanPos", Game.instance.cam.transform.position);
+        GPUInstancing.Bots.botMaterial.SetVector("camPos", transform.position);
+        GPUInstancing.Bots.botMaterial.SetFloat("holeRadius", wallHoleRadius);
+
+
     }
 
 

@@ -140,6 +140,9 @@ TODO July 25th
 	140 is when 31-45 nav file really starts..?
 -restart PC and pin davinci resolve to taskbar
 
+-Make a struct list of each pacman session with files, start points etc to set up the game playback
+-Turn off wall shrinking when not playing back/using drone cam
+
 	
 	
 TODO

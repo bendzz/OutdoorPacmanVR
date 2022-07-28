@@ -655,9 +655,16 @@ public class Record : MonoBehaviour
             //print("time " + time);
 
             int f = getFrame(time);
+            if (f > 0)
+                f -= 1; // binary search provides the next item that's slightly *larger* than the given time
             //print("F " + f);
 
-            frames[f].playBack(0, frames[0]);
+            float frameTime = frames[f].time;
+            float lerp = (time - frameTime) / (frames[f+1].time - frames[f].time);
+            //lerp = Mathf.Clamp01(lerp);
+            //print("lerp " + lerp + " time " + time + " frametime " + frameTime);
+
+            frames[f].playBack(lerp, frames[f+1]);
         }
 
         public int getFrame(float time)

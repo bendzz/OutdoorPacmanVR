@@ -40,11 +40,11 @@ CONTROLS:
 		
 		(Each save makes a new file in "\Quest 2\Internal shared storage\Android\data\com.DefaultCompany.OutdoorPacmanVR\files". To access, enable USB access in Quest 2 general settings->Deveper menu, then plug headset into PC and enable USB in headset popup.)
 		
-		(NOTE: The only way to playback gameplay is through the Unity Editor version of the game; you'd need to copy the recordings to "C:\Users\PcUserName\AppData\LocalLow\DefaultCompany\OutdoorPacmanVR", download the game code from github, get it running, then go GameScene->Singletons->Record script, set Active, turn off Recording Mode, and set the File Number. Then hit play to watch the recording. It can also composite in video and nav data from a DJI mini pro 3 drone, but that's a whole process.)
+		(NOTE: The only way to playback gameplay is through the Unity Editor version of the game; you'd need to copy the recordings to "C:\Users\PcUserName\AppData\LocalLow\DefaultCompany\OutdoorPacmanVR", download the game code from github, get it running, then go GameScene->Singletons->Record script, set Active, turn off Recording Mode, and set the File Number. Then hit play to watch the recording. It can also composite in video and nav data from a DJI mini pro 3 drone, but that's a longer process.)
 
 NOTES:
 
--Not entirely finished; it only has 1 level and winning or dying doesn't actually end it. (Just crank the ghost speeds up to simulate later levels). It's also missing some nuances of the original like cherries and some AI glitches. But it's pretty authentic; The pixel perfect map, ghost AI and spawning is all about right.
+-Not entirely finished; it only has 1 level and winning or dying doesn't actually end it. (Just crank the ghost speeds up to simulate later levels). It's also missing some nuances of the original like cherries, some AI glitches and working teleporters (lol). But it's pretty authentic; The pixel perfect map, ghost AI and spawning is all about right.
 
 -Yes you can walk through walls. Even if I enforce rules here later I'll make them optional; it's fun =)
 

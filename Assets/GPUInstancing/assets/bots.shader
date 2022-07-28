@@ -54,6 +54,13 @@ Shader "Custom/bots"
 
         sampler2D _MainTex;
 
+
+        // pacman specific
+        // Used to make a transparent hole in the walls for video footage
+        float4 pacmanPos;
+        float4 camPos;  // spectator camera
+        float holeRadius;   // in world units
+
         //struct Input
         //{
         //    float2 uv_MainTex;
@@ -209,7 +216,42 @@ Shader "Custom/bots"
                 }
             }
 
+            // draw hole in walls so you can see the player
+            if (camPos.x != 0) {
+                for (v = 0; v < 3; v++) {
+                    // Draw a line between pacman and camera, find distance from vector to that line
+                    //float3 direction = pacmanPos - camPos;
+                    //float3 nearestLinePoint = dot(direction, (vecs[v] - camPos)) * normalize(direction) + camPos;
 
+                    float3 direction = pacmanPos - camPos;
+                    float spotOnLine = dot(normalize(direction), (vecs[v] - camPos));
+                    if (spotOnLine > length(direction))
+                        spotOnLine = length(direction);
+
+                    float3 nearestLinePoint = normalize(direction) * spotOnLine + camPos;
+
+                    //float distance = length(vecs[v] - nearestLinePoint);
+                    //float distance = length(vecs[v] - nearestLinePoint);
+                    float distance = length(vecs[v].xz - nearestLinePoint.xz);
+
+                    //float maxHeight = 1 - saturate(holeRadius - length(vecs[v] - pacmanPos) / holeRadius);
+                    //float maxHeight = 1 - saturate(holeRadius - distance / holeRadius);
+                    float maxHeight =  (distance - holeRadius);
+                    if (maxHeight < 0)
+                        maxHeight = 0;
+                    //float maxHeight = -distance;
+                    //if (maxHeight < 1)
+                    //    vecs[v].y = lerp(0, vecs[v].y, maxHeight);
+
+                    if (vecs[v].y > maxHeight)
+                        vecs[v].y = maxHeight;
+                    //vecs[v].y = maxHeight;
+                }
+            }
+
+            //float4 pacmanPos;
+            //float4 camPos;  // spectator camera
+            //float holeRadius;   // in world units
 
             // map scaling
             for (int v = 0; v < 3; v++) {

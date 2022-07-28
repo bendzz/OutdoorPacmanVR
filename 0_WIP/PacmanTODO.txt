@@ -138,6 +138,8 @@ TODO July 25th
 -Use a static Char[] array instead of a list
 	
 	140 is when 31-45 nav file really starts..?
+-restart PC and pin davinci resolve to taskbar
+
 	
 	
 TODO

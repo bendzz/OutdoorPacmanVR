@@ -49,6 +49,11 @@ public class DroneCam : MonoBehaviour
 
         Record.TransformFrame frame0 = null;
 
+        double startXpos = 0;
+        double startYpos = 0;
+        double startZpos = 0;
+
+
         int i = 0;
         foreach (string line in droneFile)
         {
@@ -85,34 +90,58 @@ public class DroneCam : MonoBehaviour
 
             bodyFrame.time = (float)System.Convert.ChangeType(entries[3], typeof(float));
 
-            bodyFrame.lPos.x = (float)System.Convert.ChangeType(entries[4], typeof(float)) * 111139;    // longitude/latitude are each 111,139 per degree
-            //bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float)) * 0.3048f;   // feet to meters
-            bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float)) *1f;   // feet to meters
-            bodyFrame.lPos.z = (float)System.Convert.ChangeType(entries[5], typeof(float)) * 111139;
+
+
+
+            //bodyFrame.lPos.x = (float)System.Convert.ChangeType(entries[4], typeof(float)) * 111139;    // longitude/latitude are each 111,139 per degree
+            ////bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float)) * 0.3048f;   // feet to meters
+            //bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float)) *1f;   // feet to meters
+            //bodyFrame.lPos.z = (float)System.Convert.ChangeType(entries[5], typeof(float)) * 111139;
+
+            // longitude and latitude are too big for floats; you lose precision
+            double xPos = (double)System.Convert.ChangeType(entries[4], typeof(double));
+            double yPos = (double)System.Convert.ChangeType(entries[6], typeof(double));
+            double zPos = (double)System.Convert.ChangeType(entries[5], typeof(double));
+
+            bodyFrame.lPos.x = (float)System.Convert.ChangeType(entries[4], typeof(float));
+            bodyFrame.lPos.y = (float)System.Convert.ChangeType(entries[6], typeof(float));
+            bodyFrame.lPos.z = (float)System.Convert.ChangeType(entries[5], typeof(float));
+
+
+
+
 
             bodyFrame.lScal = Vector3.one;
 
+            // Enable this to bring in the drone body's rotation; note that this will screw up the gimbal angle
             // pitch roll yaw, is original input order
             // roll and pitch are inverted
-            Vector3 rot = new Vector3(-(float)System.Convert.ChangeType(entries[18], typeof(float)), (float)System.Convert.ChangeType(entries[21], typeof(float)), -(float)System.Convert.ChangeType(entries[19], typeof(float)));
-
-            //bodyFrame.lRot.eulerAngles = rot;
+            //Vector3 rot = new Vector3(-(float)System.Convert.ChangeType(entries[18], typeof(float)), (float)System.Convert.ChangeType(entries[21], typeof(float)), -(float)System.Convert.ChangeType(entries[19], typeof(float)));
             bodyFrame.lRot.eulerAngles = Vector3.zero;
 
-            //print("i " + i + " line " + line);
 
             if (i == 2)
-                frame0 = bodyFrame;
+            {
+                startXpos = xPos;
+                startYpos = yPos;
+                startZpos = zPos;
 
-            //print("bodyFrame.lPos " + bodyFrame.lPos);
+                frame0 = bodyFrame; // for rotation (?)
+            }
 
             if (frame0 != null && frame0 != bodyFrame)
             {
                 //print("frame0.lPos " + frame0.lPos);
-                // make sure the camera position is actually in my city lol
-                bodyFrame.lPos -= frame0.lPos;
+                //bodyFrame.lPos -= frame0.lPos;
+
+                // convert longitude and latitude to game coords
+
+                xPos = (xPos - startXpos) * 111139;     // longitude/latitude are each 111,139 per degree
+                yPos = (yPos - startYpos);  // * 0.3048f;   // feet to meters
+                zPos = (zPos - startZpos) * 111139;
+
+                bodyFrame.lPos = new Vector3((float)xPos, (float)yPos, (float)zPos);
             }
-            //print("bodyFrame.lPos " + bodyFrame.lPos);
 
             if (frame0 != bodyFrame) 
                 bodyFrame.lPos.x = -bodyFrame.lPos.x;   // longitude is inverted
@@ -134,7 +163,7 @@ public class DroneCam : MonoBehaviour
             gimbalFrame.lScal = Vector3.one;
 
             //rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
-            rot = new Vector3((float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
+            Vector3 rot = new Vector3((float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
             //rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[56], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
 
             // gimbal rotation is absolute value, not additive with the drone body

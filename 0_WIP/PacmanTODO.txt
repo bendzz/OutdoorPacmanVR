@@ -87,7 +87,6 @@ TODO
 
 
 -2 Github embedded gifs: A ghost approaching life sized as you back away, and board game sized play
-	-social image https://github.com/bendzz/OutdoorPacmanVR/settings
 -Put MIT license on this and TF GJ games
 
 
@@ -165,25 +164,45 @@ TRAILER MOMENTS
 0
 	-Me playing
 	-Me sprinting down halls in first person at the start
+	-Sprinting down that long hall right after the quest tracking jerk
 	-When I almost ran into Clyde, twice
 	-When I wave at the drone then run down the hallway
 	-When I dodge by Binky, grab the power pill and eat him
 1
 	-M playing
-	-When M's tired and walking, then looks back, sees Binky and jumps and runs
 	-M's first person view of pumping his arms running down a hallway
+	-When M's tired and walking, then looks back, sees Binky and jumps and runs
 2
 	-J playing
 	-Maybe the start where we have a nice, low shot beside J?
 	-Looking down at J running desperately, sunk into the floor, around 50s
 3
 	-k playing
-	
+	-CORRUPTED; their movement paths match the maze but don't line up during playback; something wrong with the recorder. Shit.
+		-Need to set the TrackingSpace transform like this: https://cdn.discordapp.com/attachments/552308534906454017/1002619099928608879/unknown.png
+	-Their little hand flurry at the start
+	-When the drone hits the tree
 4	
 	-Clip 14
 	-???
 	-Mystery gameplay sequence. No camera/drone recording I guess..? Good reactions though in first person
 	-The constantly looking back and running at the start (in first person)
+
+
+EMAIL:
+-It was really hard to sync the drone footage to the game, let me know if it's right, if the wall heights and movements look right. K, your gameplay file got corrupt somehow, I was only able to recover bits of it, mb. Thx again everyone. (M, can you forward this to J?)
+
+
+
+TODO FOR RELEASE:
+-Make a zip file of the code from github
+	-Host that and the APK in dropbox
+-Make a VR Dev youtube account
+	-Upload the trailer, link on sidequest
+-Do another build with the fixes
+	-map rotation fix TODO
+	-Make sure to test that all the drone stuff is turned off and recording is on!
+
 
 	
 TODO

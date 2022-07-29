@@ -6,8 +6,6 @@ using UnityEngine.Video;
 
 public class DroneCam : MonoBehaviour
 {
-    [Tooltip("Lowers the walls between the camera and pacman so you can see the player")]
-    public bool cutHoleInWalls = true;
     
     public Record recorder;
      
@@ -42,8 +40,20 @@ public class DroneCam : MonoBehaviour
     [Tooltip("Add a little excitement by making all the eaten dots normal again for re-eating- Or fix it after replaying section")]
     public bool resetAllDots = false;
 
+
+    [Tooltip("Lowers the walls between the camera and pacman so you can see the player")]
+    public bool cutHoleInWalls = true;
     [Tooltip("Draws a hole in the maze walls so I can see pacman")]
     public float wallHoleRadius = 1.5f;
+
+    public bool showDronePath = true;
+    public bool showHeadsetPath = true;
+
+    [Tooltip("Of the OVR rig")]
+    public Transform CenterEyeAnchor;
+    [Tooltip("Enables or disables the in game VR camera")]
+    public bool switchToHeadsetView = false;
+
 
     bool initialized;
 
@@ -320,6 +330,8 @@ public class DroneCam : MonoBehaviour
         {
             Record.instance.playbackSpeed = playbackSpeed;
 
+            CenterEyeAnchor.gameObject.SetActive(switchToHeadsetView);
+
             // adjust times
             syncGameSessionSettings();
             Record.instance.clip.timeOffset = pacmanStart + globalStartOffset;
@@ -385,9 +397,9 @@ public class DroneCam : MonoBehaviour
             }
 
 
-
+            // paths to help syncing
+            if (showDronePath)
             {
-                // draw drone path 
                 int i = 0;
                 foreach (Record.TransformFrame frame in bodyProperty.frames)
                 {
@@ -401,9 +413,10 @@ public class DroneCam : MonoBehaviour
                     }
                     i++;
                 }
-
-                // draw headset path 
-                i = 0;
+            }
+            if (showHeadsetPath)
+            { 
+                int i = 0;
                 Record.AnimatedProperty headProp = Record.instance.clip.animatedProperties[1];
                 Transform headset = (Transform)headProp.obj;
                 foreach (Record.TransformFrame frame in headProp.frames)
@@ -439,6 +452,12 @@ public class DroneCam : MonoBehaviour
     {
         //if (!pausePlayback)
             ((Transform)gimbalProperty.obj).localEulerAngles += doneCamRotationOffset;
+
+        if (pausePlayback)
+        {
+            // pause game after recording unpaused it
+            Game.instance.paused = true;
+        }
     }
 
 

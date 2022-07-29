@@ -50,9 +50,20 @@ Shader "Unlit/DroneShader"
                 // sample the texture
                 fixed4 game = tex2D(_MainTex, i.uv);
                 fixed4 drone = tex2D(droneVideo, i.uv);
+               
+                fixed4 droneOffset = tex2D(droneVideo, i.uv - float2(.001, .001));
                 
+                //droneOffset.rb = droneOffset.rb - droneOffset.g;
+                //droneOffset.g = 0;
+
+                //drone.rb = drone.rb - drone.g;
+                //drone.g = 0;
+                //drone.r = 0;
+
+
                 fixed4 col = drone;
-            col -= tex2D(droneVideo, i.uv - float2(.001, .001));
+            //col -= tex2D(droneVideo, i.uv - float2(.001, .001));
+                col -= droneOffset;
             col *= 10; 
 
                 col.a = 1;
@@ -79,6 +90,7 @@ Shader "Unlit/DroneShader"
                 game += col;
 
                 // apply fog
+                //return drone;
                 return game;
             }
             ENDCG

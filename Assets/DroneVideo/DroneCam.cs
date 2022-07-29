@@ -6,8 +6,11 @@ using UnityEngine.Video;
 
 public class DroneCam : MonoBehaviour
 {
+    [Tooltip("Lowers the walls between the camera and pacman so you can see the player")]
+    public bool cutHoleInWalls = true;
+    
     public Record recorder;
-
+     
     public Transform droneCamPlatform;
     [Tooltip("A body for the drone so the camera can rotate freely")]
     public Transform droneBody;
@@ -28,6 +31,9 @@ public class DroneCam : MonoBehaviour
     private Vector3 doneCamRotationOffset = Vector3.zero;
 
     public float playbackSpeed = 1;
+    [Tooltip("Rewinds X seconds on click")]
+    public bool rewind = false;
+    public float rewindLength = 5f;
 
     [Tooltip("Draws a hole in the maze walls so I can see pacman")]
     public float wallHoleRadius = 1.5f;
@@ -258,7 +264,16 @@ public class DroneCam : MonoBehaviour
             bodyProperty.timeOffset = droneStart;
             gimbalProperty.timeOffset = bodyProperty.timeOffset;
 
-            
+            if (rewind)
+            {
+
+
+                Record.instance.clip.time -= rewindLength;
+                //videoPlayer.time -= rewindLength;
+                videoPlayer.frame = (long)(videoPlayer.frame - videoPlayer.frameRate * rewindLength);
+
+                rewind = false;
+            }
 
 
             {
@@ -298,10 +313,15 @@ public class DroneCam : MonoBehaviour
         //cam.fieldOfView = Camera.HorizontalToVerticalFieldOfView(82.1f, cam.aspect);    // set drone FOV https://www.dji.com/ca/mini-3-pro/specs
 
         // for drawing a hole through the walls
-        GPUInstancing.Bots.botMaterial.SetVector("pacmanPos", Game.instance.cam.transform.position);
-        GPUInstancing.Bots.botMaterial.SetVector("camPos", transform.position);
-        GPUInstancing.Bots.botMaterial.SetFloat("holeRadius", wallHoleRadius);
-
+        if (cutHoleInWalls)
+        {
+            GPUInstancing.Bots.botMaterial.SetVector("pacmanPos", Game.instance.cam.transform.position);
+            GPUInstancing.Bots.botMaterial.SetVector("camPos", transform.position);
+            GPUInstancing.Bots.botMaterial.SetFloat("holeRadius", wallHoleRadius);
+        } else
+        {
+            GPUInstancing.Bots.botMaterial.SetVector("camPos", Vector3.zero);
+        }
 
     }
 

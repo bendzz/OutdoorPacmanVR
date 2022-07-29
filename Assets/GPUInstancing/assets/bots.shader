@@ -219,6 +219,8 @@ Shader "Custom/bots"
             // draw hole in walls so you can see the player
             if (camPos.x != 0) {
                 for (v = 0; v < 3; v++) {
+                    if (submeshI != 0)
+                        continue;
                     // Draw a line between pacman and camera, find distance from vector to that line
                     //float3 direction = pacmanPos - camPos;
                     //float3 nearestLinePoint = dot(direction, (vecs[v] - camPos)) * normalize(direction) + camPos;

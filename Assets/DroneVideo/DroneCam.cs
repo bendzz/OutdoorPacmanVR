@@ -34,10 +34,13 @@ public class DroneCam : MonoBehaviour
     [Tooltip("Fast forwards X seconds on click")]
     public bool fastFoward = false;
     public bool rewind = false;
-    [Tooltip("And fastForward length")]
-    public float rewindLength = 5f;
     [Tooltip("Lets you pause to sync up the transform locations a bit better. (Note: video start time is only updated on fastforward/rewind)")]
     public bool pausePlayback = false;
+    [Tooltip("And fastForward length")]
+    public float rewindLength = 5f;
+
+    [Tooltip("Add a little excitement by making all the eaten dots normal again for re-eating- Or fix it after replaying section")]
+    public bool resetAllDots = false;
 
     [Tooltip("Draws a hole in the maze walls so I can see pacman")]
     public float wallHoleRadius = 1.5f;
@@ -354,6 +357,33 @@ public class DroneCam : MonoBehaviour
                 Game.instance.paused = false;
                 videoPlayer.Play();
             }
+            if (resetAllDots)
+            {
+                for (int x = 0; x < Game.instance.navs.GetLength(0); x++)
+                {
+                    for (int y = 0; y < Game.instance.navs.GetLength(1); y++)
+                    {
+                        Game.navTile tile = Game.instance.navs[x, y];
+                        if (tile.dotRef != 0)
+                        {
+                            GPUInstancing.Bots.bot bot = GPUInstancing.Bots.bots.list[tile.dotRef];
+                            bot.alive = 1;
+                            if (bot.pos.y < 1)
+                                bot.pos.y = 1;
+                            GPUInstancing.Bots.bots.list[tile.dotRef] = bot;
+
+                            tile.hasItem = true;
+                            Game.instance.navs[x, y] = tile;
+                        }
+                    }
+                }
+                GPUInstancing.Bots.bots.fillBuffer();
+
+
+                print("Reset all pacman dots");
+                resetAllDots = false;
+            }
+
 
 
             {

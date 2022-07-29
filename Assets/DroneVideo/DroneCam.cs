@@ -53,13 +53,15 @@ public class DroneCam : MonoBehaviour
     [System.Serializable]
     public class GameSession
     {
-        [Tooltip("WARNING: This doesn't actually set the file number in Singletons->Recording! It's just a reminder. (Too lazy to set up)")]
-        public int pacmanFileNumberREMINDER;
+        //[Tooltip("WARNING: This doesn't actually set the file number in Singletons->Recording! It's just a reminder. (Too lazy to set up)")]
+        public int pacmanFileNumber;
         
         public float pacmanStart;
+        [Tooltip("WARNING: This is *in addition* to pacmanStart; if you add to that, you have to subtract from this one")]
         public float droneStart;
         [Tooltip("This one only syncs when you rewind/fast forward (and it syncs poorly, often randomly off by a bit)")]
         public float droneVideoStart;
+        [Tooltip("Starts the whole scene playing later")]
         public float globalStartOffset;
 
         [Tooltip("Applied to all frames once on startup")]
@@ -96,6 +98,8 @@ public class DroneCam : MonoBehaviour
             Debug.LogError("ERROR: Only one instance of DroneCam allowed! This instance is on " + gameObject);
             
         syncGameSessionSettings();
+
+        //Record.instance.fileNumber = gameSessions[activeGameSession].pacmanFileNumber;
     }
 
     /// <summary>
@@ -105,6 +109,8 @@ public class DroneCam : MonoBehaviour
     {
         // sync all the data recordings
         GameSession gs = gameSessions[activeGameSession];
+
+        Record.instance.fileNumber = gs.pacmanFileNumber;
 
         pacmanStart = gs.pacmanStart;
         droneStart = gs.droneStart;
@@ -283,6 +289,8 @@ public class DroneCam : MonoBehaviour
         //print("222 Record and its clip object were initialized! Attached delegates are now called.");
 
         DroneCam.instance.loadDroneFile();    // initialize after Record has loaded its stuff
+
+        //DroneCam.instance.syncGameSessionSettings();    // 
     }
 
     
@@ -297,6 +305,8 @@ public class DroneCam : MonoBehaviour
             videoPlayer.time = droneVideoStart + globalStartOffset;
 
             Record.instance.clipInitializedDelegate += clipInitialized;
+
+            DroneCam.instance.syncGameSessionSettings();
 
             initialized = true;
             return;

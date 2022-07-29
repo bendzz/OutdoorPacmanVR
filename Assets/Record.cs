@@ -61,6 +61,10 @@ public class Record : MonoBehaviour
         public float time = 0;
         public float length;
 
+        /// <summary>
+        /// For syncing the clip to other feeds, makes it easier to adjust the sync live
+        /// </summary>
+        public float timeOffset = 0;
 
         /// <summary>
         /// Note: The order of this has to stay constant during the game- No removing properties. 
@@ -133,15 +137,16 @@ public class Record : MonoBehaviour
         /// </summary>
         public void playFrame()
         {
-            //print("time " + time);
-            //print("length " + length);
-            if (time > length)
-                time = time % length;
-            //print("time " + time);
+            float playTime = time + timeOffset;
+            //if (time > length)
+            //    time = time % length;
+            if (playTime > length)
+                playTime = playTime % length;
+
 
             foreach (AnimatedProperty property in animatedProperties)
             {
-                property.playFrame();
+                property.playFrame(playTime);
                 //print("property " + property.obj);
                 //property.frames[frameCount].playBack();
             }
@@ -644,15 +649,18 @@ public class Record : MonoBehaviour
         /// <summary>
         /// Assumes frames are sorted by time. (TODO)
         /// </summary>
-        public void playFrame()
+        public void playFrame(float playTime)
         {
             //print("this " + this);
             //print("obj " + obj);
             //print("clip " + clip.name);
             //print("timeOffset " + timeOffset);
             //print("clip.time " + clip.time);
-            float time = clip.time + timeOffset;
+            //float time = clip.time + timeOffset;
             //print("time " + time);
+
+            float time = playTime + timeOffset;
+
 
             int f = getFrame(time);
             if (f > 0)

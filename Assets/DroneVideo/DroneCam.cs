@@ -33,6 +33,7 @@ public class DroneCam : MonoBehaviour
     public float playbackSpeed = 1;
     [Tooltip("Rewinds X seconds on click")]
     public bool rewind = false;
+    public bool fastFoward = false;
     public float rewindLength = 5f;
 
     [Tooltip("Draws a hole in the maze walls so I can see pacman")]
@@ -54,6 +55,7 @@ public class DroneCam : MonoBehaviour
         
         public float pacmanStart;
         public float droneStart;
+        [Tooltip("This one only syncs when you rewind/fast forward (and it syncs poorly, often randomly off by a bit)")]
         public float droneVideoStart;
         public float globalStartOffset;
 
@@ -76,6 +78,14 @@ public class DroneCam : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
+    {
+        syncGameSessionSettings();
+    }
+
+    /// <summary>
+    /// Sets script settings to the correct gameSessions settings. (yeah it's inefficient to duplicate these variables. Too lazy to fix)
+    /// </summary>
+    void syncGameSessionSettings()
     {
         // sync all the data recordings
         GameSession gs = gameSessions[activeGameSession];
@@ -230,7 +240,7 @@ public class DroneCam : MonoBehaviour
 
             Vector3 rot = new Vector3(-(float)System.Convert.ChangeType(entries[54], typeof(float)), (float)System.Convert.ChangeType(entries[57], typeof(float)), -(float)System.Convert.ChangeType(entries[55], typeof(float)));
 
-            rot += doneCamRotationOffset;
+            //rot += doneCamRotationOffset;
 
             // gimbal rotation is absolute value, not additive with the drone body
             gimbalFrame.lRot.eulerAngles = rot;
@@ -252,7 +262,7 @@ public class DroneCam : MonoBehaviour
         {
             loadDroneFile();    // initialize after Record has loaded its stuff
              
-            Record.instance.clip.time = pacmanStart + globalStartOffset;    // note: This offset affects all clip properties, including the drone ones.
+            //Record.instance.clip.time = pacmanStart + globalStartOffset;    // note: This offset affects all clip properties, including the drone ones.
             videoPlayer.time = droneVideoStart + globalStartOffset;
         }
          
@@ -261,18 +271,28 @@ public class DroneCam : MonoBehaviour
         {
             Record.instance.playbackSpeed = playbackSpeed;
 
+            // adjust times
+            syncGameSessionSettings();
+            Record.instance.clip.timeOffset = pacmanStart + globalStartOffset;
             bodyProperty.timeOffset = droneStart;
             gimbalProperty.timeOffset = bodyProperty.timeOffset;
 
             if (rewind)
             {
-
-
                 Record.instance.clip.time -= rewindLength;
                 //videoPlayer.time -= rewindLength;
-                videoPlayer.frame = (long)(videoPlayer.frame - videoPlayer.frameRate * rewindLength);
+                //videoPlayer.frame = (long)(videoPlayer.frame - videoPlayer.frameRate * rewindLength);   // MAYBE more precise..?
+                videoPlayer.time = Record.instance.clip.time + droneVideoStart; // to try and resync the video
 
                 rewind = false;
+            } 
+            if (fastFoward)
+            {
+                Record.instance.clip.time += rewindLength;
+                //videoPlayer.frame = (long)(videoPlayer.frame + videoPlayer.frameRate * rewindLength);   // MAYBE more precise..?
+                videoPlayer.time = Record.instance.clip.time + droneVideoStart; // to try and resync the video
+
+                fastFoward = false;
             }
 
 
@@ -323,6 +343,11 @@ public class DroneCam : MonoBehaviour
             GPUInstancing.Bots.botMaterial.SetVector("camPos", Vector3.zero);
         }
 
+    }
+
+    private void LateUpdate()
+    {
+        ((Transform)gimbalProperty.obj).localEulerAngles += doneCamRotationOffset;
     }
 
 

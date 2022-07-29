@@ -79,9 +79,22 @@ public class DroneCam : MonoBehaviour
     public List<GameSession> gameSessions;
 
 
+
+
+
+
+
+
+    public static DroneCam instance;
+
     // Start is called before the first frame update
     void Start()
     {
+        if (instance == null)
+            instance = this;
+        else
+            Debug.LogError("ERROR: Only one instance of DroneCam allowed! This instance is on " + gameObject);
+            
         syncGameSessionSettings();
     }
 
@@ -258,15 +271,35 @@ public class DroneCam : MonoBehaviour
     }
 
 
+
+
+
+
+    /// <summary>
+    /// Have to run this after the Record Clip is initialized
+    /// </summary>
+    public static void clipInitialized()
+    {
+        //print("222 Record and its clip object were initialized! Attached delegates are now called.");
+
+        DroneCam.instance.loadDroneFile();    // initialize after Record has loaded its stuff
+    }
+
+    
+
+
     // Update is called once per frame
     void Update()
     {
         if (!initialized)
         {
-            loadDroneFile();    // initialize after Record has loaded its stuff
-             
             //Record.instance.clip.time = pacmanStart + globalStartOffset;    // note: This offset affects all clip properties, including the drone ones.
             videoPlayer.time = droneVideoStart + globalStartOffset;
+
+            Record.instance.clipInitializedDelegate += clipInitialized;
+
+            initialized = true;
+            return;
         }
          
 

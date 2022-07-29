@@ -698,7 +698,7 @@ MonoBehaviour:
     droneVideoStart: 0
     globalStartOffset: 0
     doneCamRotationOffset: {x: 0, y: 23, z: 0}
-    droneCamPlatformPos: {x: -0.7, y: 0.94, z: 2.38}
+    droneCamPlatformPos: {x: -0.7, y: 1.39, z: 2.38}
     droneCamPlatformRotation: {x: 0, y: -268.8, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-07-21]
     videoClip: {fileID: 32900000, guid: 96b12305877d053459fde1ab00e767e7, type: 3}

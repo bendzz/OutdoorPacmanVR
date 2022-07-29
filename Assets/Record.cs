@@ -930,14 +930,33 @@ public class Record : MonoBehaviour
 
 
 
+    /// <summary>
+    /// Example 
+    /// </summary>
+    public static void clipInitialized()
+    {
+        print("Record and its clip object were initialized! Attached delegates are now called.");
+    }
+
+    public delegate void ClipInitializedDel();
+    /// <summary>
+    /// Calls all attached delegates when the Record clip is instantiated
+    /// </summary>
+    public ClipInitializedDel clipInitializedDelegate;
+
+
 
 
     public float playbackSpeed = 1;
-
+    string clipName;    // todo make public? The recording system isn't really supposed to have its own clip... That's more for testing/laziness
 
     int frameCount = 0; // temp
 
     Clip testClip;
+    /// <summary>
+    /// Needs to be initialized after other gameobjects Start
+    /// </summary>
+    bool initialized = false;
 
     // Start is called before the first frame update
     void Start()
@@ -947,19 +966,22 @@ public class Record : MonoBehaviour
         else
             Debug.LogError("There should only be one instance of record! This instance is on " + gameObject);
 
-        string clipName = "PacmanRecording";
+        clipName = "PacmanRecording";
+
+
+        //clipInitializedDelegate = clipInitialized;    // Example delegate
 
 
         //setTestRecording();
 
         //setTestPlayback();
 
-        if (recordingMode)
-            clip = setUpRecording(clipName);
-        else
-        {
-            clip = setUpPlayback(clipName);
-        }
+        //if (recordingMode)
+        //    clip = setUpRecording(clipName);
+        //else
+        //{
+        //    clip = setUpPlayback(clipName);
+        //}
     }
 
 
@@ -1357,9 +1379,24 @@ public class Record : MonoBehaviour
 
 
 
+
     // Update is called once per frame
     void Update()
     {
+        // Have to initialize the clip after other game classes have Started, so that properties can be linked
+        if (!initialized)
+        {
+            if (recordingMode)
+                clip = setUpRecording(clipName);
+            else
+            {
+                clip = setUpPlayback(clipName);
+            }
+
+            clipInitializedDelegate();
+            initialized = true;
+        }
+
         //foreach (AnimatedProperty property in testClip.animatedProperties)
         //{
         //    property.frames[0].playBack();
@@ -1395,8 +1432,15 @@ public class Record : MonoBehaviour
                 frameCount++;   // no longer really used..?
 
                 clipTime = clip.time;
+                //Game.instance.paused = true;
+
+                // Stops jerky glitchiness
+                foreach(Ghost ghost in ghosts)
+                {
+                    ghost.playbackOverride = true;
+                }
             }
-        }
+        } 
     }
 
     private void OnDestroy()

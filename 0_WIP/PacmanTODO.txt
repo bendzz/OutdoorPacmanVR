@@ -154,7 +154,24 @@ GAME FIXES:
 (To do once I'm done with all these past recordings)
 	-The movement multiplier needs to account for OVR rig rotation, ie map rotation! (That's what's causing all the sliding). Fuck.
 		>OVRCameraRig.position = rigStartPos + Vector3.Scale(cam.transform.localPosition, new Vector3(1, 0, 1));	// this line, needs to use the OVRRig rotation to change the added localPosition or something
-	-
+		-Fix the drifting error when the map is rotated!
+		(Maybe add a bool to check if the playback file is an old one?)
+	-J kept bumping the controller triggers and rotating the map...
+		-Make that control harder to access?
+		-Why does map movement make the drove nav not line up anymore? It should be fine, since it's parented to TrackingSpace
+		
+TRAILER MOMENTS
+0
+	-When I almost ran into Clyde, twice
+	-When I wave at the drone then run down the hallway
+	-When I dodge by Binky, grab the power pill and eat him
+1
+	-When M's tired and walking, then looks back, sees Binky and jumps and runs
+	-M's first person view of pumping his arms running down a hallway
+2
+	-J constantly looking back and running at the start (in first person)
+
+
 
 	
 TODO

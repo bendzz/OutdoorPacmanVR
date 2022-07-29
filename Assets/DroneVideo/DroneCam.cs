@@ -134,7 +134,8 @@ public class DroneCam : MonoBehaviour
         droneCamPlatform.localPosition = gs.droneCamPlatformPos;
         droneCamPlatform.transform.localEulerAngles = gs.droneCamPlatformRotation;
 
-        droneFileName = gs.droneFileName;
+        if (gs.droneFileName != null)
+            droneFileName = gs.droneFileName;
         videoPlayer.clip = gs.videoClip;
     }
 
@@ -301,7 +302,13 @@ public class DroneCam : MonoBehaviour
     {
         //print("222 Record and its clip object were initialized! Attached delegates are now called.");
 
-        DroneCam.instance.loadDroneFile();    // initialize after Record has loaded its stuff
+        if (DroneCam.instance.droneFileName != "")
+        {
+            DroneCam.instance.loadDroneFile();    // initialize after Record has loaded its stuff
+        } else
+        {
+            Debug.LogWarning("WARNING: Drone file name is blank. Not loading file");
+        }
 
         //DroneCam.instance.syncGameSessionSettings();    // 
     }
@@ -314,6 +321,8 @@ public class DroneCam : MonoBehaviour
     {
         if (!initialized)
         {
+            initialized = true;
+
             //Record.instance.clip.time = pacmanStart + globalStartOffset;    // note: This offset affects all clip properties, including the drone ones.
             videoPlayer.time = droneVideoStart + globalStartOffset;
 
@@ -321,7 +330,6 @@ public class DroneCam : MonoBehaviour
 
             DroneCam.instance.syncGameSessionSettings();
 
-            initialized = true;
             return;
         }
          

@@ -682,10 +682,10 @@ MonoBehaviour:
   cutHoleInWalls: 1
   wallHoleRadius: 1.5
   showDronePath: 0
-  showHeadsetPath: 1
+  showHeadsetPath: 0
   CenterEyeAnchor: {fileID: 1923706540}
   switchToHeadsetView: 0
-  activeGameSession: 3
+  activeGameSession: 4
   gameSessions:
   - pacmanFileNumber: 8
     pacmanStart: 16
@@ -728,15 +728,15 @@ MonoBehaviour:
     droneFileName: DJIFlightRecord_2022-07-26_[19-24-00]
     videoClip: {fileID: 32900000, guid: bab57894d85dd004188e871b3fbb23f8, type: 3}
   - pacmanFileNumber: 14
-    pacmanStart: 39.7
-    droneStart: 498.09
+    pacmanStart: 67.8
+    droneStart: -1000
     droneVideoStart: 0
-    globalStartOffset: 26
-    doneCamRotationOffset: {x: 0, y: 16, z: 0}
-    droneCamPlatformPos: {x: 17.4, y: -1.4, z: -3.9}
-    droneCamPlatformRotation: {x: 0, y: 200, z: 0}
+    globalStartOffset: 0
+    doneCamRotationOffset: {x: 5.53, y: 0, z: 0}
+    droneCamPlatformPos: {x: -0, y: 2.3, z: -5.79}
+    droneCamPlatformRotation: {x: 0, y: 11.93, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-24-00]
-    videoClip: {fileID: 32900000, guid: bab57894d85dd004188e871b3fbb23f8, type: 3}
+    videoClip: {fileID: 32900000, guid: 9004129e123e1cf42b0300351777bf45, type: 3}
 --- !u!20 &425854230
 Camera:
   m_ObjectHideFlags: 0

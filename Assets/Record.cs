@@ -1386,6 +1386,8 @@ public class Record : MonoBehaviour
         // Have to initialize the clip after other game classes have Started, so that properties can be linked
         if (!initialized)
         {
+            initialized = true;
+
             if (recordingMode)
                 clip = setUpRecording(clipName);
             else
@@ -1394,7 +1396,6 @@ public class Record : MonoBehaviour
             }
 
             clipInitializedDelegate();
-            initialized = true;
         }
 
         //foreach (AnimatedProperty property in testClip.animatedProperties)

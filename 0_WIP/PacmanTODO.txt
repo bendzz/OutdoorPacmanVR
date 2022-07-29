@@ -187,11 +187,13 @@ TRAILER MOMENTS
 	-???
 	-Mystery gameplay sequence. No camera/drone recording I guess..? Good reactions though in first person
 	-The constantly looking back and running at the start (in first person)
+	-OH It's phone footage!
+	-First 67 seconds: No video. Lots of good first person walking backwards in a panic
 
 
 EMAIL:
--It was really hard to sync the drone footage to the game, let me know if it's right, if the wall heights and movements look right. K, your gameplay file got corrupt somehow, I was only able to recover bits of it, mb. Thx again everyone. (M, can you forward this to J?)
-
+-It took like 2 days to sync the drone footage to the game, let me know if it looks about right, or if the wall height or positions are off etc. K, your gameplay file got corrupt somehow, I was only able to recover bits of it, mb. Thx again everyone! (M, can you forward this to J?)
+	-Include link to sidequest, trailer, and a dropbox with the raw drone videos
 
 
 TODO FOR RELEASE:

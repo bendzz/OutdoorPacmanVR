@@ -329,7 +329,7 @@ public class DroneCam : MonoBehaviour
                 Record.instance.clip.time -= rewindLength;
                 //videoPlayer.time -= rewindLength;
                 //videoPlayer.frame = (long)(videoPlayer.frame - videoPlayer.frameRate * rewindLength);   // MAYBE more precise..?
-                videoPlayer.time = Record.instance.clip.time + droneVideoStart; // to try and resync the video
+                videoPlayer.time = Record.instance.clip.time + droneVideoStart + globalStartOffset; // to try and resync the video
 
                 rewind = false;
             } 
@@ -337,7 +337,7 @@ public class DroneCam : MonoBehaviour
             {
                 Record.instance.clip.time += rewindLength;
                 //videoPlayer.frame = (long)(videoPlayer.frame + videoPlayer.frameRate * rewindLength);   // MAYBE more precise..?
-                videoPlayer.time = Record.instance.clip.time + droneVideoStart; // to try and resync the video
+                videoPlayer.time = Record.instance.clip.time + droneVideoStart + globalStartOffset; // to try and resync the video
 
                 fastFoward = false;
             }

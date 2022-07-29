@@ -629,6 +629,8 @@ GameObject:
   - component: {fileID: 425854229}
   - component: {fileID: 425854231}
   - component: {fileID: 425854232}
+  - component: {fileID: 425854233}
+  - component: {fileID: 425854234}
   m_Layer: 0
   m_Name: DroneCam
   m_TagString: MainCamera
@@ -663,6 +665,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4cd157f8c70b9d943bcf1c70d7490345, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  clipTime: 0
   recorder: {fileID: 216010506}
   droneCamPlatform: {fileID: 2035072497}
   droneBody: {fileID: 510696741}
@@ -676,7 +679,7 @@ MonoBehaviour:
   playbackSpeed: 1
   fastFoward: 0
   rewind: 0
-  pausePlayback: 0
+  pausePlayback: 1
   rewindLength: 5
   resetAllDots: 0
   cutHoleInWalls: 1
@@ -697,6 +700,8 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: -215.581, z: 0}
     droneFileName: DJIFlightRecord_2022-07-25_[19-31-45]
     videoClip: {fileID: 32900000, guid: d9ac26b3c946439418d58758ea507e40, type: 3}
+    animator: {fileID: 0}
+    animation: {fileID: 0}
   - pacmanFileNumber: 13
     pacmanStart: 102.45
     droneStart: -100
@@ -707,6 +712,8 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: -268.8, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-07-21]
     videoClip: {fileID: 32900000, guid: 96b12305877d053459fde1ab00e767e7, type: 3}
+    animator: {fileID: 0}
+    animation: {fileID: 0}
   - pacmanFileNumber: 15
     pacmanStart: 44.93
     droneStart: 498.7
@@ -717,6 +724,8 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: -20.5, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-24-00]
     videoClip: {fileID: 32900000, guid: bab57894d85dd004188e871b3fbb23f8, type: 3}
+    animator: {fileID: 0}
+    animation: {fileID: 0}
   - pacmanFileNumber: 16
     pacmanStart: 53.2
     droneStart: 786.09
@@ -727,8 +736,10 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: 278.6, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-24-00]
     videoClip: {fileID: 32900000, guid: bab57894d85dd004188e871b3fbb23f8, type: 3}
+    animator: {fileID: 0}
+    animation: {fileID: 0}
   - pacmanFileNumber: 14
-    pacmanStart: 67.8
+    pacmanStart: 68.1
     droneStart: -1000
     droneVideoStart: 0
     globalStartOffset: 0
@@ -737,6 +748,8 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: 11.93, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-24-00]
     videoClip: {fileID: 32900000, guid: 9004129e123e1cf42b0300351777bf45, type: 3}
+    animator: {fileID: 425854233}
+    animation: {fileID: 0}
 --- !u!20 &425854230
 Camera:
   m_ObjectHideFlags: 0
@@ -821,6 +834,40 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 425854227}
   m_Enabled: 1
+--- !u!95 &425854233
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 425854227}
+  m_Enabled: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c2d7047bd290a2d4b919976b559bad3c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!111 &425854234
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 425854227}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: d67a9fd71a52e264b94bf8649d67cfd9, type: 2}
+  m_Animations: []
+  m_WrapMode: 0
+  m_PlayAutomatically: 1
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1 &510696740
 GameObject:
   m_ObjectHideFlags: 0

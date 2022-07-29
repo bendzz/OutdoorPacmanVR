@@ -135,16 +135,16 @@ TODO July 25th
 -fix methodFrame too (to use SpeedyJson)?
 -Try ReadAllInes
 -Use a static Char[] array instead of a list (to speed up string processing for loading Clips, and minimize garbage collection)
-
 	
 -restart PC and pin davinci resolve to taskbar
 
-
--Turn off wall shrinking when not playing back/using drone cam
-
 -Record some top down gameplay, like the arcade cabinet
 
--Add a "rewind several seconds" button so I can adjust the nav position then record that good part for the trailer
+
+
+TODO July 29th
+-Get animation recording/playback working on the camera for this last clip
+-record videos of clips (using unity animations to fix up the drone sync?)
 
 
 

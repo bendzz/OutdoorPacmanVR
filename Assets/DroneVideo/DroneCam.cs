@@ -6,7 +6,9 @@ using UnityEngine.Video;
 
 public class DroneCam : MonoBehaviour
 {
-    
+    [Tooltip("This is just a mirror of what the Record clip time is; you can't set it. (It's for easier animating)")]
+    public float clipTime;
+
     public Record recorder;
      
     public Transform droneCamPlatform;
@@ -88,6 +90,10 @@ public class DroneCam : MonoBehaviour
         public string droneFileName;
         public VideoClip videoClip;
 
+        [Tooltip("A new, optional unity animation you can slap on a camera or platform to help sync it better. This script will set its 'time' parameter to match the Clips")]
+        public Animator animator;
+        public Animation animation;
+
     };
     [Tooltip("LPT: Most game session properties, including which session, can only be changed before startup.")]
     public int activeGameSession;
@@ -134,8 +140,7 @@ public class DroneCam : MonoBehaviour
         droneCamPlatform.localPosition = gs.droneCamPlatformPos;
         droneCamPlatform.transform.localEulerAngles = gs.droneCamPlatformRotation;
 
-        if (gs.droneFileName != null)
-            droneFileName = gs.droneFileName;
+        droneFileName = gs.droneFileName;
         videoPlayer.clip = gs.videoClip;
     }
 
@@ -345,6 +350,27 @@ public class DroneCam : MonoBehaviour
             Record.instance.clip.timeOffset = pacmanStart + globalStartOffset;
             bodyProperty.timeOffset = droneStart;
             gimbalProperty.timeOffset = bodyProperty.timeOffset;
+
+            clipTime = Record.instance.clip.time;
+
+            //Animator anim = gameSessions[activeGameSession].animator;
+            ////Animation ani = gameSessions[activeGameSession].animation;
+            ////if (ani != null && anim != null)
+            //if (anim != null)
+            //{
+            //    //anim.SetFloat("time", Record.instance.clip.time);
+            //    anim.playbackTime = Record.instance.clip.time;
+            //}
+
+            Animation ani = gameSessions[activeGameSession].animation;
+            if (ani != null)
+            {
+                foreach (AnimationState state in ani)
+                {
+                    //state.speed = 0.5F;
+                    state.time = Record.instance.clip.time;
+                }
+            }
 
             // playback controls
             if (rewind)

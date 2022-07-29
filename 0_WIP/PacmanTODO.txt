@@ -161,17 +161,29 @@ GAME FIXES:
 		-Why does map movement make the drove nav not line up anymore? It should be fine, since it's parented to TrackingSpace
 		
 TRAILER MOMENTS
+-IRL Pacman Highlight Reel
 0
+	-Me playing
+	-Me sprinting down halls in first person at the start
 	-When I almost ran into Clyde, twice
 	-When I wave at the drone then run down the hallway
 	-When I dodge by Binky, grab the power pill and eat him
 1
+	-M playing
 	-When M's tired and walking, then looks back, sees Binky and jumps and runs
 	-M's first person view of pumping his arms running down a hallway
 2
-	-J constantly looking back and running at the start (in first person)
-
-
+	-J playing
+	-Maybe the start where we have a nice, low shot beside J?
+	-Looking down at J running desperately, sunk into the floor, around 50s
+3
+	-k playing
+	
+4	
+	-Clip 14
+	-???
+	-Mystery gameplay sequence. No camera/drone recording I guess..? Good reactions though in first person
+	-The constantly looking back and running at the start (in first person)
 
 	
 TODO

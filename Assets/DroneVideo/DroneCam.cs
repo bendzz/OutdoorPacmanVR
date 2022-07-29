@@ -31,10 +31,13 @@ public class DroneCam : MonoBehaviour
     private Vector3 doneCamRotationOffset = Vector3.zero;
 
     public float playbackSpeed = 1;
-    [Tooltip("Rewinds X seconds on click")]
-    public bool rewind = false;
+    [Tooltip("Fast forwards X seconds on click")]
     public bool fastFoward = false;
+    public bool rewind = false;
+    [Tooltip("And fastForward length")]
     public float rewindLength = 5f;
+    [Tooltip("Lets you pause to sync up the transform locations a bit better. (Note: video start time is only updated on fastforward/rewind)")]
+    public bool pausePlayback = false;
 
     [Tooltip("Draws a hole in the maze walls so I can see pacman")]
     public float wallHoleRadius = 1.5f;
@@ -277,6 +280,7 @@ public class DroneCam : MonoBehaviour
             bodyProperty.timeOffset = droneStart;
             gimbalProperty.timeOffset = bodyProperty.timeOffset;
 
+            // playback controls
             if (rewind)
             {
                 Record.instance.clip.time -= rewindLength;
@@ -293,6 +297,19 @@ public class DroneCam : MonoBehaviour
                 videoPlayer.time = Record.instance.clip.time + droneVideoStart; // to try and resync the video
 
                 fastFoward = false;
+            }
+            if (pausePlayback)
+            {
+                //Record.instance.active = false;
+                Record.instance.playbackSpeed = 0;
+                Game.instance.paused = true;
+                videoPlayer.Pause();
+            } else
+            {
+                //Record.instance.active = true;
+                //Record.instance.playbackSpeed = 0;
+                Game.instance.paused = false;
+                videoPlayer.Play();
             }
 
 
@@ -347,7 +364,8 @@ public class DroneCam : MonoBehaviour
 
     private void LateUpdate()
     {
-        ((Transform)gimbalProperty.obj).localEulerAngles += doneCamRotationOffset;
+        //if (!pausePlayback)
+            ((Transform)gimbalProperty.obj).localEulerAngles += doneCamRotationOffset;
     }
 
 

@@ -574,7 +574,7 @@ public class Game : MonoBehaviour
                 navs[packmanPos.x, packmanPos.y] = pacTile;
             }
 
-            if (!dotEaten)
+            if (!dotEaten && !paused)
             {
                 timeSinceDotEaten += Time.deltaTime;
                 if (timeSinceDotEaten >= 4) // TODO only 3 seconds after level 5

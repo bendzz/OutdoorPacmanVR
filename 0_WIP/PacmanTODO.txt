@@ -168,6 +168,11 @@ TRAILER MOMENTS
 	-When I almost ran into Clyde, twice
 	-When I wave at the drone then run down the hallway
 	-When I dodge by Binky, grab the power pill and eat him
+	FPS
+	-When I slip on the turn near the start
+	-When I chase down the blue ghosts for the first time
+	-When I get too close to clyde
+	-ESPECIALLY when I look at binky then dodge around him!
 1
 	-M playing
 	-M's first person view of pumping his arms running down a hallway
@@ -182,6 +187,8 @@ TRAILER MOMENTS
 		-Need to set the TrackingSpace transform like this: https://cdn.discordapp.com/attachments/552308534906454017/1002619099928608879/unknown.png
 	-Their little hand flurry at the start
 	-When the drone hits the tree
+	FPS:
+		-They kept getting cornered by normal ghosts and even backing away from blue ghosts, hilariously
 4	
 	-Clip 14
 	-???

@@ -276,9 +276,14 @@ Shader "Custom/bots"
                 color = float4(.02, .02, .02, 0);
 
             float light = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
-            //light = light * .8 + .2;
-            light = light * .9 + .04;
+            float white = saturate(light - .7);
+            //light = light * .9 + .04;
+            light = light * 1.5 + .04;
             color.xyz = color.xyz * light;
+
+            // white capped walls
+            //color.xyz += white * 1.5;
+            color.bg += white * 1.5;
 
             // Only show the most powerful ghost light in the frag shader, since these lights are SUPER expensive
             // TODO clean up this code and, is there a prettier way to do this? The sharp edges are a bit ugly. Maybe 2 lights?

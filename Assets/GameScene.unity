@@ -679,7 +679,7 @@ MonoBehaviour:
   playbackSpeed: 1
   fastFoward: 0
   rewind: 0
-  pausePlayback: 1
+  pausePlayback: 0
   rewindLength: 5
   resetAllDots: 0
   cutHoleInWalls: 1
@@ -700,7 +700,6 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: -215.581, z: 0}
     droneFileName: DJIFlightRecord_2022-07-25_[19-31-45]
     videoClip: {fileID: 32900000, guid: d9ac26b3c946439418d58758ea507e40, type: 3}
-    animator: {fileID: 0}
     animation: {fileID: 0}
   - pacmanFileNumber: 13
     pacmanStart: 102.45
@@ -712,7 +711,6 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: -268.8, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-07-21]
     videoClip: {fileID: 32900000, guid: 96b12305877d053459fde1ab00e767e7, type: 3}
-    animator: {fileID: 0}
     animation: {fileID: 0}
   - pacmanFileNumber: 15
     pacmanStart: 44.93
@@ -724,7 +722,6 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: -20.5, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-24-00]
     videoClip: {fileID: 32900000, guid: bab57894d85dd004188e871b3fbb23f8, type: 3}
-    animator: {fileID: 0}
     animation: {fileID: 0}
   - pacmanFileNumber: 16
     pacmanStart: 53.2
@@ -736,7 +733,6 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: 278.6, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-24-00]
     videoClip: {fileID: 32900000, guid: bab57894d85dd004188e871b3fbb23f8, type: 3}
-    animator: {fileID: 0}
     animation: {fileID: 0}
   - pacmanFileNumber: 14
     pacmanStart: 68.1
@@ -748,8 +744,7 @@ MonoBehaviour:
     droneCamPlatformRotation: {x: 0, y: 11.93, z: 0}
     droneFileName: DJIFlightRecord_2022-07-26_[19-24-00]
     videoClip: {fileID: 32900000, guid: 9004129e123e1cf42b0300351777bf45, type: 3}
-    animator: {fileID: 425854233}
-    animation: {fileID: 0}
+    animation: {fileID: 425854234}
 --- !u!20 &425854230
 Camera:
   m_ObjectHideFlags: 0
@@ -863,7 +858,8 @@ Animation:
   m_Enabled: 1
   serializedVersion: 3
   m_Animation: {fileID: 7400000, guid: d67a9fd71a52e264b94bf8649d67cfd9, type: 2}
-  m_Animations: []
+  m_Animations:
+  - {fileID: 7400000, guid: d67a9fd71a52e264b94bf8649d67cfd9, type: 2}
   m_WrapMode: 0
   m_PlayAutomatically: 1
   m_AnimatePhysics: 0

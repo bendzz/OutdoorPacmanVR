@@ -90,8 +90,9 @@ public class DroneCam : MonoBehaviour
         public string droneFileName;
         public VideoClip videoClip;
 
-        [Tooltip("A new, optional unity animation you can slap on a camera or platform to help sync it better. This script will set its 'time' parameter to match the Clips")]
-        public Animator animator;
+        //[Tooltip("A new, optional unity animation you can slap on a camera or platform to help sync it better. This script will set its 'time' parameter to match the Clips")]
+        //public Animator animator;
+        [Tooltip("A last minute ad hoc idea to fix the phone cam clip I found")]
         public Animation animation;
 
     };

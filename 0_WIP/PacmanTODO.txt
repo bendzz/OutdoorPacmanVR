@@ -255,3 +255,16 @@ TODO LATER:
 -Pushup to respawn? (And reset the ghosts to the house, then turn the music back on and let them respawn once the pushup is done)
 
 -Video background separation? NRN recommends this https://hkchengrex.github.io/STCN/ (video at bottom)
+
+
+
+
+10:44 AM 2023-12-18
+-OLD TODO: 
+	-Have to fix stuff I broke with the recording system
+	-Have to fix the player movement when you rotate the map (stop it feeling like ur running sideways)
+-From that enthusiastic youtube comment:
+	https://discord.com/channels/217710636702892032/552308534906454017/1186355419254358157
+	-2 modes: Original pacman, and levels (starting simple and getting larger and harder)
+	-Add lives, scoring, original game's level system
+-Make the wall columns skinny so you can see the ghosts through the gaps!
